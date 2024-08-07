@@ -1,0 +1,7 @@
+СУБД - PostgreSQL
+Файловая СУБД - SQLite
+Сервер - Flask
+ORM - SQLAlchemy
+Docker
+Оркестрация окнейнеров - Kubernetis
+CI/CD - gitAction
