@@ -3,7 +3,7 @@ from db import engine
 from models import Base
 
 app = Flask(__name__)
-#Base.metadata.drop_all(engine) - если накосячил с таблицами
+#Base.metadata.drop_all(engine) # если накосячил с таблицами
 Base.metadata.create_all(engine)
 
 # Импортируем и регистрируем Blueprint -> views.py
