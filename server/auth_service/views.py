@@ -1,9 +1,8 @@
 from flask import Blueprint, request, jsonify
-from models import RegistrationToken
-from db import get_bd, engine
+from models import RegistrationToken, User
+from server.database_service.connection import get_bd
 import datetime
 from sqlalchemy.exc import SQLAlchemyError
-
 
 AnswerFromAuthService = {
     "status": "success",
@@ -197,7 +196,69 @@ class AuthService:
 
     @staticmethod
     def register_user(data):
-        pass
+        db = next(get_bd())
+
+        try:
+            # Получаем значения из данных
+            token = data.get("token")
+            name = data.get('name')
+            password = data.get('password')
+
+            # Проверяем наличие всех необходимых полей
+            if not token or not name or not password:
+                return jsonify({
+                    'error': 'Missing fields',
+                    'message': 'Token, name, and password are required.'
+                }), 400
+
+            # Проверяем существование регистрационного токена
+            reqToken = db.query(RegistrationToken).filter(
+                RegistrationToken.token == token).first()
+
+            if reqToken is None:
+                return jsonify({
+                    'error': 'Invalid token',
+                    'message': 'Registration token not found.'
+                }), 404
+
+            new_user = User(
+                regToken_id=reqToken.regToken_id,
+                username=name,
+                password=password
+            )
+
+            # Сохраняем нового пользователя в базу данных
+            db.add(new_user)
+            db.commit()
+
+            return jsonify({
+                'message': 'User registered successfully',
+                "data": {
+                    'user_name': new_user.username,
+                    'user_id': new_user.user_id
+                }
+            }), 201
+
+        except SQLAlchemyError as e:
+            db.rollback()
+            return jsonify({
+                'error': 'Database error',
+                'message': 'Failed to register new user.',
+                'details': str(e)
+            }), 500
+
+        except ValueError as e:
+            return jsonify({
+                'error': 'Invalid data',
+                'message': str(e)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                'error': 'Unexpected error',
+                'message': 'An unexpected error occurred.',
+                'details': str(e)
+            }), 500
 
     @staticmethod
     def login_user(data):
@@ -246,9 +307,7 @@ def set_max_users():
 
 @auth_blueprint.route('/auth/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    print("/auth/register", data)
-    return
+    return AuthService.register_user(data=request.get_json())
 
 
 @auth_blueprint.route("/auth/login", methods=["POST"])

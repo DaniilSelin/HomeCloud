@@ -23,7 +23,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Создаем триггер для таблицы Users
 CREATE TRIGGER user_limit_trigger
 BEFORE INSERT ON "Users"
 FOR EACH ROW EXECUTE FUNCTION check_user_limit();

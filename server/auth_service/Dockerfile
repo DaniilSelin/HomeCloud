@@ -1,11 +1,33 @@
-FROM ubuntu:18.04
+FROM ubuntu:latest
+LABEL authors="vboxuser"
 
-WORKDIR /HomeCloud/server/auth_service
+WORKDIR /server
 
-COPY . .
+COPY ./__init__.py .
 
-RUN pip install -r requrements.txt
+COPY ./auth_service ./auth_service
+
+COPY ./database_service ./database_service
+
+WORKDIR /server/auth_service
+
+# Установите Python и pip
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    libpq-dev \
+    build-essential
+
+RUN python3 -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+ENV PYTHONPATH="/server"
+
+RUN pip3 install -r requirements.txt
 
 EXPOSE 5000
 
-CMD ["python3", "./auth_srvice.py"]
+RUN ln -s /server /server/auth_service/server
+
+CMD ["python3", "auth_service.py"]

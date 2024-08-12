@@ -1,5 +1,5 @@
-from flask import Flask, abort, redirect, url_for
-from db import engine
+from flask import Flask
+from server.database_service.connection import engine
 from models import Base
 
 app = Flask(__name__)
@@ -13,4 +13,4 @@ app.register_blueprint(auth_blueprint, url_prefix='/')
 
 if __name__ == '__main__':
     app.debug = True
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000)

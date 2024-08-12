@@ -1,6 +1,12 @@
+import os
+
+
 class Config:
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://homecloudauthsevice:123@localhost:5432/homecloud"
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL',
+                                        'postgresql+psycopg2://homecloudauthsevice:123@localhost:5432/homecloud'
+                                        )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 """
 ПРИМЕЧАНИЯ ЧТОБЫ НЕ ЗАПУТАЦА ТУТА

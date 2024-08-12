@@ -10,15 +10,16 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "Users"
-    user_id = Column(Integer, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     user_name = Column(String(24), unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     regToken_id = Column(Integer, ForeignKey("RegistrationToken.regToken_id"))
 
-    def __init__(self, username, password):
-        self.username = username
+    def __init__(self, username, password, regToken_id):
+        self.user_name = username
         self.password_hash = generate_password_hash(password)
+        self.regToken_id = regToken_id
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
