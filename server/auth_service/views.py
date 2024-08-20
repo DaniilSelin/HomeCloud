@@ -2,10 +2,11 @@ from flask import Blueprint, request, jsonify
 from models import RegistrationToken, User
 from server.database_service.connection import get_bd
 import datetime
-import uuid
+import uuid, os
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 AnswerFromAuthService = {
     "status": "success",
@@ -17,13 +18,14 @@ AnswerFromAuthService = {
 }
 
 
+# декоратор для отлова стандартных ошибок
 def handle_exceptions(func):
     """Декоратор для отлова шаблонных ошибок"""
     @wraps(func)
     def wrapper(*args, **kwargs):
         db = next(get_bd())
         try:
-            return func(db, *args, **kwargs)
+            return func(db=db, *args, **kwargs)
         except SQLAlchemyError as e:
             db.rollback()
             return jsonify({'error': str(e), 'message': 'Database error occurred'}), 500
@@ -35,21 +37,65 @@ def handle_exceptions(func):
     return wrapper
 
 
+# декоратор чтобы установить, что фукнция доступна только админам
+def admin_required(func):
+    @wraps(func)
+    @jwt_required()
+    def wrapper(*args, **kwargs):
+        claims = get_jwt_identity()
+        if not claims.get('admin'):
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'Only admins can perform this action.'
+            }), 403
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+def create_first_admin():
+    db = next(get_bd())
+
+    # Данные для создания администратора
+    admin_name = "homeuser"
+    admin_password = "changeme"
+
+    # Проверяем, существуют ли уже пользователи в базе данных
+    user_count = db.query(User).count()
+
+    if user_count == 0:
+        # Если пользователей нет, создаем администратора
+        new_admin = User(
+            user_name=admin_name,
+            password=admin_password,
+            admin=True,
+        )
+
+        # Сохраняем нового пользователя в базу данных
+        db.add(new_admin)
+        db.commit()
+
+        return "Admin create successfully"
+    else:
+        return "Admin exist"
+
+
 class AuthService:
+    """
+    AuthService предоставляет набор статических методов для
+    """
     @staticmethod
     @handle_exceptions
     def generate_token(db, data):
         expiry_days = data.get('expiry', 30)
 
-        token = RegistrationToken(
-            token=str(uuid.uuid4()),
-            expiry_date=datetime.datetime.utcnow() + datetime.timedelta(days=expiry_days)
-        )
+        token = RegistrationToken.generate_token(expiry_days)
 
         db.add(token)
         db.commit()
 
-        return jsonify({'message': 'Token created successfully'}), 201
+        return jsonify({'message': 'Token created successfully',
+                        'data': {'token': token.token, 'expiry_data': token.expiry_date}}), 201
 
     @staticmethod
     @handle_exceptions
@@ -136,7 +182,7 @@ class AuthService:
 
     @staticmethod
     @handle_exceptions
-    def set_max_users(db, data):
+    def set_max_users(db,  data):
         token = data.get("token", None)
         max_users = data.get('max_users', None)
 
@@ -166,7 +212,6 @@ class AuthService:
         token = data.get("token")
         name = data.get('name')
         password = data.get('password')
-        admin = data.get("admin", False)
 
         # Проверяем наличие всех необходимых полей
         if not token or not name or not password:
@@ -195,7 +240,6 @@ class AuthService:
             reqToken=reqToken.token,
             user_name=name,
             password=password,
-            admin=admin
         )
 
         # Сохраняем нового пользователя в базу данных
@@ -208,7 +252,6 @@ class AuthService:
                 'user_name': new_user.user_name,
                 'user_id': new_user.user_id,
                 'password': new_user.password_hash,
-                'admin': new_user.admin
             }
         }), 201
 
@@ -241,12 +284,13 @@ class AuthService:
                 'message': 'The password provided is incorrect.'
             }), 401
 
+        access_token = create_access_token(identity=str(user.user_id), additional_claims={"admin": user.admin})
+
         # Если все проверки прошли успешно
         return jsonify({
             'message': 'Login successful',
             'data': {
-                'user_id': user.user_id,
-                'user_name': user.user_name
+                "access_token": access_token
             }
         }), 200
 
@@ -366,8 +410,7 @@ class AuthService:
 
     @staticmethod
     @handle_exceptions
-    def change_password(db, data):
-        user_id = data.get("user_id")
+    def change_password(db, user_id, data):
         new_password = data.get("new_password")
 
         if not user_id:
@@ -400,15 +443,8 @@ class AuthService:
 
     @staticmethod
     @handle_exceptions
-    def update_name_user(db, data):
-        user_id = data.get("user_id")
+    def update_name_user(db, user_id, data):
         new_name = data.get("new_name")
-
-        if not user_id:
-            return jsonify({
-                'error': 'User ID is required',
-                'message': 'Failed to update name. Please provide a valid user ID.'
-            }), 400
 
         if not new_name or len(new_name) == 0:
             return jsonify({
@@ -434,14 +470,18 @@ class AuthService:
 
     @staticmethod
     @handle_exceptions
-    def set_admin(db, data):
-        user_id = data.get("user_id")
+    def set_admin(db, data, user_id):
+        user_id_got = data.get("user_id")
+        admin_key = data.get("admin_key")
 
-        if not user_id:
+        if user_id_got:
+            user_id = user_id_got
+
+        if admin_key != os.getenv("ADMIN_SECRET_KEY"):
             return jsonify({
-                'error': 'User ID is required',
-                'message': 'Failed to set admin. Please provide a valid user ID.'
-                }), 400
+                'error': 'Invalid admin key',
+                'message': 'The provided admin key is incorrect.'
+            }), 403
 
         user = db.query(User).filter(User.user_id == user_id).first()
 
@@ -461,14 +501,18 @@ class AuthService:
 
     @staticmethod
     @handle_exceptions
-    def unset_admin(db, data):
-        user_id = data.get("user_id")
+    def unset_admin(db, data, user_id):
+        user_id_got = data.get("user_id")
+        admin_key = os.getenv("admin_key")
 
-        if not user_id:
+        if user_id_got:
+            user_id = user_id_got
+
+        if admin_key != os.getenv("ADMIN_SECRET_KEY"):
             return jsonify({
-                'error': 'User ID is required',
-                'message': 'Failed to set admin. Please provide a valid user ID.'
-            }), 400
+                'error': 'Invalid admin key',
+                'message': 'The provided admin key is incorrect.'
+            }), 403
 
         user = db.query(User).filter(User.user_id == user_id).first()
 
@@ -492,92 +536,294 @@ auth_blueprint = Blueprint('auth', __name__)
 
 
 @auth_blueprint.route("/auth/generate_token", methods=["POST"])
+@admin_required
 def generate_token():
-    """Создает новый токен"""
+    """
+    Создает новый токен.
+
+    Запрос:
+    json = {"expiry"(опционально): Количество дней до истечения срока действия токена.}
+
+    Ответ:
+    {
+     "message": Сообщение о создании токена.
+     "status": HTTP статус-код 201.
+     "data": {'token': token.token, 'expiry_data': token.expiry_date}
+    }
+    """
     return AuthService.generate_token(data=request.get_json())
 
 
 @auth_blueprint.route("/auth/get_tokens", methods=["GET"])
+@admin_required
 def get_tokens():
-    """ Возвращает все токены"""
+    """
+    Возвращает все токены.
+
+    Запрос:
+    Нет.
+
+    Ответ:
+    {
+     "message": Сообщение об успешном получении токенов,
+     "status": HTTP статус-код 200,
+     "data": [
+         {'token': , 'created_at': , "expiry_date": , "max_users": },
+         ...
+     ]
+    }
+    """
     return AuthService.get_tokens()
 
 
 @auth_blueprint.route("/auth/update_token", methods=["PATCH"])
+@admin_required
 def update_token_expiry():
-    """ Обновляет время действия токена на переданное количество дней"""
+    """
+    Обновляет время действия токена на переданное количество дней.
+
+    Запрос:
+    json = {"token": Токен для обновления, "expiry" (опционально): Количество дней до истечения срока действия токена.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном обновлении срока действия токена,
+     "status": HTTP статус-код 201,
+     "data": {'token': , 'expiry_date': }
+    }
+    """
     return AuthService.update_token_expiry(data=request.get_json())
 
 
 @auth_blueprint.route("/auth/delete_expired_token", methods=["DELETE"])
+@admin_required
 def delete_expired_token():
-    """Удаляет все токены, у которых истек срок годности"""
+    """
+    Удаляет все токены, у которых истек срок годности.
+
+    Запрос:
+    Нет.
+
+    Ответ:
+    {
+     "message": Сообщение об успешном удалении всех истекших токенов,
+     "status": HTTP статус-код 200,
+     "data": {}
+    }
+    """
     return AuthService.delete_expired_token()
 
 
 @auth_blueprint.route("/auth/delete_token", methods=["DELETE"])
+@admin_required
 def delete_token():
-    """Удаляет указанный токен"""
+    """
+    Удаляет указанный токен.
+
+    Запрос:
+    json = {"token": Токен для удаления.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном удалении токена,
+     "status": HTTP статус-код 200,
+     "data": {}
+    }
+    """
     return AuthService.delete_token(data=request.get_json())
 
 
 @auth_blueprint.route("/auth/set_max_users", methods=["PATCH"])
+@admin_required
 def set_max_users():
-    """Обновляет максимальное колчество квот для регистрации"""
+    """
+    Обновляет максимальное количество квот для регистрации.
+
+    Запрос:
+    json = {"token": Токен для обновления, "max_users": Максимальное количество пользователей.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном обновлении квоты пользователей,
+     "status": HTTP статус-код 201,
+     "data": {'token': , 'max_users': }
+    }
+    """
     return AuthService.set_max_users(data=request.get_json())
 
 
 @auth_blueprint.route('/auth/register', methods=['POST'])
 def register():
-    """Создает нового пользователя"""
+    """
+    Создает нового пользователя.
+
+    Запрос:
+    json = {"token": Регистрационный токен, "name": Имя пользователя, "password": Пароль}
+
+    Ответ:
+    {
+     "message": Сообщение об успешной регистрации пользователя,
+     "status": HTTP статус-код 201,
+     "data": {'user_name': , 'user_id': , 'admin': }
+    }
+    """
     return AuthService.register_user(data=request.get_json())
 
 
 @auth_blueprint.route("/auth/login", methods=["POST"])
 def login():
-    """НЕДОПИСАННАЯ ЛОГИКА ВЗОДА В АКАУНТ"""
+    """
+    Вход в аккаунт.
+
+    Запрос:
+    json = {"name": Имя пользователя, "password": Пароль.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном входе,
+     "status": HTTP статус-код 200,
+     "data": {'access_token': }
+    }
+    """
     return AuthService.login_user(data=request.get_json())
 
 
 @auth_blueprint.route("/auth/get_users", methods=["GET"])
+@jwt_required()
 def get_users():
-    """Возвращает список пользоваетелей"""
+    """
+    Возвращает список пользователей.
+
+    Запрос:
+    Нет.
+
+    Ответ:
+    {
+     "message": Сообщение об успешном получении списка пользователей,
+     "status": HTTP статус-код 200,
+     "data": [
+         {'name': , 'created_at': , "reqToken": , "user_id": , "admin": },
+         ...
+     ]
+    }
+    """
     return AuthService.get_users()
 
 
-### ИСПРАВИТЬ!!!! РЕСТ АПИ ПРИДЕРЖИВАЕМСЯ ЧМОНЯ
-@auth_blueprint.route("/auth/get_user", methods=["GET"])
-def get_user():
-    """Возвращает информацию о пользователе по его ID"""
-    return AuthService.get_user_by_id(data=request.get_json())
+@auth_blueprint.route("/auth/get_user_by_id", methods=["GET"])
+@jwt_required()
+def get_user_by_id():
+    """
+    Возвращает информацию о пользователе по его ID.
+
+    Запрос:
+    args = {"user_id": ID пользователя.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном получении данных пользователя,
+     "status": HTTP статус-код 200,
+     "data": {'user_id': , 'user_name': , 'admin': }
+    }
+    """
+    return AuthService.get_user_by_id(data=request.args)
 
 
-### ИСПРАВИТЬ!!!! РЕСТ АПИ ПРИДЕРЖИВАЕМСЯ ЧМОНЯ
 @auth_blueprint.route("/auth/get_user_by_name", methods=["GET"])
+@jwt_required()
 def get_user_by_name():
-    """Возвращает информацию о пользователе"""
-    return AuthService.get_user_by_name(data=request.get_json())
+    """
+    Возвращает информацию о пользователе по его имени.
+
+    Запрос:
+    args = {"user_name": Имя пользователя.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном получении данных пользователя,
+     "status": HTTP статус-код 200,
+     "data": {'user_id': , 'user_name': , 'admin': }
+    }
+    """
+    return AuthService.get_user_by_name(data=request.args)
 
 
 @auth_blueprint.route("/auth/change_password", methods=["PATCH"])
+@jwt_required()
 def change_password():
-    """Изменяет пароль пользователя"""
-    return AuthService.change_password(data=request.get_json())
+    """
+    Изменяет пароль пользователя.
+
+    Запрос:
+    json = {"user_id": ID пользователя, "new_password": Новый пароль.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном изменении пароля,
+     "status": HTTP статус-код 201,
+     "data": {}
+    }
+    """
+    user_id = get_jwt_identity()
+    return AuthService.change_password(user_id=user_id, data=request.get_json())
 
 
 @auth_blueprint.route("/auth/update_user", methods=["PATCH"])
+@jwt_required()
 def update_name_user():
-    """Обновляет данные пользователя"""
-    return AuthService.update_name_user(data=request.get_json())
+    """
+    Обновляет имя пользователя.
+
+    Запрос:
+    json = {"user_id": ID пользователя, "new_name": Новое имя.}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном обновлении имени пользователя,
+     "status": HTTP статус-код 201,
+     "data": {}
+    }
+    """
+    user_id = get_jwt_identity()
+    return AuthService.update_name_user(user_id=user_id, data=request.get_json())
 
 
 @auth_blueprint.route("/auth/set_admin", methods=["PATCH"])
+@jwt_required()
 def set_admin():
-    """Устанавливает польхователю по id в позицию admin"""
-    return AuthService.set_admin(data=request.get_json())
+    """
+    Назначает пользователя администратором. Если не передавать идентнификатор пользоваетля,
+     то статус будет выдам тому, кто отправил запрос
+
+    Запрос:
+    json = {"user_id"(небязательно): ID пользователя, "admin_key": Ключ, который выдает владелец облака}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном назначении администратора,
+     "status": HTTP статус-код 201,
+     "data": {}
+    }
+    """
+    user_id = get_jwt_identity()
+    return AuthService.set_admin(user_id=user_id, data=request.get_json())
 
 
 @auth_blueprint.route("/auth/unset_admin", methods=["PATCH"])
+@jwt_required()
 def unset_admin():
-    """Устанавливает польхователю по id в позицию admin"""
-    return AuthService.unset_admin(data=request.get_json())
+    """
+    Снимает статус администратора с пользователя.
+
+    Запрос:
+    json = {"user_id": ID пользователя, "admin_key": Ключ, который выдает владелец облака}
+
+    Ответ:
+    {
+     "message": Сообщение об успешном снятии статуса администратора,
+     "status": HTTP статус-код 201,
+     "data": {}
+    }
+    """
+    user_id = get_jwt_identity()
+    return AuthService.unset_admin(user_id=user_id, data=request.get_json())
