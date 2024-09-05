@@ -6,7 +6,7 @@ import uuid, os
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt, create_access_token, jwt_required, get_jwt_identity
 
 AnswerFromAuthService = {
     "status": "success",
@@ -42,8 +42,13 @@ def admin_required(func):
     @wraps(func)
     @jwt_required()
     def wrapper(*args, **kwargs):
-        claims = get_jwt_identity()
-        if not claims.get('admin'):
+        claims = get_jwt()
+
+        # Получаем информацию о пользователе из ключа 'sub'
+        identity = claims.get('sub', {})
+
+        # Проверяем наличие ключа 'admin' и его значение
+        if not identity.get('admin'):
             return jsonify({
                 'error': 'Unauthorized',
                 'message': 'Only admins can perform this action.'
@@ -95,7 +100,7 @@ class AuthService:
         db.commit()
 
         return jsonify({'message': 'Token created successfully',
-                        'data': {'token': token.token, 'expiry_data': token.expiry_date}}), 201
+                        'data': {'token': token.token, 'expiry_date': token.expiry_date}}), 201
 
     @staticmethod
     @handle_exceptions
@@ -123,6 +128,9 @@ class AuthService:
 
         if token is None:
             return jsonify({'error': 'Token is required', 'message': 'Failed to update token expiry'}), 400
+
+        if isinstance(token, str):
+            token = uuid.UUID(token)
 
         reqToken = db.query(
             RegistrationToken).filter(
@@ -284,7 +292,13 @@ class AuthService:
                 'message': 'The password provided is incorrect.'
             }), 401
 
-        access_token = create_access_token(identity=str(user.user_id), additional_claims={"admin": user.admin})
+        # Передаем больше информации в identity
+        identity = {
+            "user_id": str(user.user_id),
+            "admin": user.admin
+        }
+
+        access_token = create_access_token(identity=identity)
 
         # Если все проверки прошли успешно
         return jsonify({
@@ -352,11 +366,12 @@ class AuthService:
             }), 400
 
         try:
-            user_id = uuid.UUID(user_id)
+            if not isinstance(user_id, uuid.UUID):
+                user_id = uuid.UUID(user_id)
         except ValueError:
             return jsonify({
                 'error': 'Invalid user_id format',
-                'message': 'user_id must be a valid UUID'
+                'message': f'user_id: {user_id} must be a valid UUID'
             }), 400
 
         user_found = db.query(User).filter(User.user_id == user_id).first()
@@ -548,7 +563,7 @@ def generate_token():
     {
      "message": Сообщение о создании токена.
      "status": HTTP статус-код 201.
-     "data": {'token': token.token, 'expiry_data': token.expiry_date}
+     "data": {'token': token.token, 'expiry_date': token.expiry_date}
     }
     """
     return AuthService.generate_token(data=request.get_json())
@@ -576,7 +591,7 @@ def get_tokens():
     return AuthService.get_tokens()
 
 
-@auth_blueprint.route("/auth/update_token", methods=["PATCH"])
+@auth_blueprint.route("/auth/update_token_expiry", methods=["PATCH"])
 @admin_required
 def update_token_expiry():
     """
@@ -755,7 +770,7 @@ def change_password():
     Изменяет пароль пользователя.
 
     Запрос:
-    json = {"user_id": ID пользователя, "new_password": Новый пароль.}
+    json = {"new_password": Новый пароль.}
 
     Ответ:
     {
@@ -764,8 +779,7 @@ def change_password():
      "data": {}
     }
     """
-    user_id = get_jwt_identity()
-    return AuthService.change_password(user_id=user_id, data=request.get_json())
+    return AuthService.change_password(user_id=get_jwt_identity(), data=request.get_json())
 
 
 @auth_blueprint.route("/auth/update_user", methods=["PATCH"])

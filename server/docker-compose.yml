@@ -18,6 +18,7 @@ services:
       dockerfile: ./auth_service/Dockerfile
     volumes:
       - ../server/database_service:/server/database_service
+      - ../server/.env:/server/.env
     ports:
       - "5000:5000"
     depends_on:

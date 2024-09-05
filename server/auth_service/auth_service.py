@@ -3,12 +3,32 @@ from views import auth_blueprint, create_first_admin
 from flask import Flask
 from server.database_service.connection import engine
 from models import Base
+from flask_jwt_extended import JWTManager
+from dotenv import load_dotenv
+
+# Путь к .env файлу
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+
+# Загрузка .env файла
+load_dotenv(env_path)
+
+# Список обязательных переменных
+required_vars = ['JWT_SECRET_KEY', 'ADMIN_SECRET_KEY']
+
+# Функция для проверки, подгружены ли все обязательные переменные
+missing_vars = [var for var in required_vars if not os.getenv(var)]
+
+if missing_vars:
+    raise EnvironmentError(f"Не удалось загрузить следующие обязательные переменные из .env: {', '.join(missing_vars)}")
 
 app = Flask(__name__)
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
-# Base.metadata.drop_all(engine) # если накосячил с таблицами
+# Инициализация JWTManager
+jwt = JWTManager(app)
+
+Base.metadata.drop_all(engine) # если накосячил с таблицами
 Base.metadata.create_all(engine)
 
 with app.app_context():

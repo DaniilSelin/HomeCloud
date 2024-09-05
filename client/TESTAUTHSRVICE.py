@@ -1,13 +1,43 @@
 import requests
+import os
+"""Response: {'data': [{'created_at': '2024-08-11T10:28:09.427145', 
+'expiry_date': '2024-09-10T10:28:09.415510', 'max_users': 1, 
+'token': '73a49798-c391-4d40-ab5b-79592a086d85'}, 
+{'created_at': '2024-08-11T10:29:57.183848',
+ 'expiry_date': '2024-09-10T10:29:57.183310', 'max_users': 1, 
+ 'token': '1ac9dfd8-718a-4b59-a552-65e6036b4936'}, {'created_at': '2024-08-11T10:32:06.860769', 'expiry_date': '2024-09-10T10:32:06.860197', 'max_users': 1, 'token': 'f2bff8c1-7e50-471a-85d8-123996b7a861'}, {'created_at': '2024-08-11T10:32:30.856932', 'expiry_date': '2024-09-10T10:32:30.856363', 'max_users': 1, 'token': 'c8a64ee9-bfba-4c5d-97ad-41f246e1a4c5'}, {'created_at': '2024-08-11T10:20:46.666386', 'expiry_date': '2024-09-10T10:20:46.663347', 'max_users': 10, 'token': '78126743-b1ee-4f6c-85ba-637396ad3869'}], 'message': 'Tokens retrieved successfully'}
 """
-# URL вашего сервиса
-url = 'http://localhost:5000/auth/generate_token'
-headers = {'Content-Type': 'application/json'}
+BASE_URL = 'http://127.0.0.1:5000'
+response = requests.post(BASE_URL + '/auth/login', json={
+        'name': 'homeuser',
+        'password': 'changeme'
+    })
+data = response.json()
+print(data)
+access = data['data']['access_token']
 
-data = {
-    'expiry': 30
-}
 
+def generate_token():
+    response = requests.post(f'{BASE_URL}/auth/generate_token', headers={
+        'Authorization': f'Bearer {access}'
+    }, json={'expiry': 10})
+
+    data = response.json()
+    return data['data']['token']
+
+
+token = generate_token()
+
+
+# Предполагается, что пользователь с ID 1 существует
+response = requests.patch(f'{BASE_URL}/auth/change_password', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={'new_password': 'new_test_password'})
+
+data = response.json()
+
+print(data)
+"""
 # Отправка POST-запроса
 response = requests.post(url, json=data, headers=headers)
 
@@ -16,30 +46,20 @@ if response.status_code == 201:
     print('Token created successfully')
     print('Response:', response.json())
 else:
-    print('Failed to create token')
     print('Status code:', response.status_code)
     print('Response:', response.json())
-
 
 # URL вашего сервиса
-url = 'http://localhost:5000/auth/update_token'
-headers = {'Content-Type': 'application/json'}
-
-data = {
-    'token': "3ad208f8-67db-48d9-9037-f43af036fc32",
-    'expiry': 900
-}
+url = 'http://127.0.0.1:5000/auth/get_tokens'
 
 # Отправка POST-запроса
-response = requests.patch(url, json=data, headers=headers)
+response = requests.get(url)
 
 # Проверка статуса ответа и вывод результата
-if response.status_code == 201:
+if response.status_code == 200:
     print('Token update expire successfully')
-    print('Response:', response.json())
+    print('Response:', response.json()["data"])
 else:
-    print('Failed to update token expire')
-    print('Status code:', response.status_code)
     print('Response:', response.json())
 
 
@@ -51,15 +71,14 @@ Response: {'data': [{'created_at': '2024-08-07T15:22:23.127140', 'expiry_date': 
 'expiry_date': 'Sat, 07 Sep 2024 05:14:33 GMT', 
 'token': '3ad208f8-67db-48d9-9037-f43af036fc32'}], 
 'message': 'Tokens retrieved successfully'}
-"""
 
 
-url = 'http://localhost:5000/auth/get_tokens'
+url = 'http://localhost:5050/auth/get_tokens'
 
 
 # Отправка GET-запроса
+print(requests.get(url))
 response = requests.get(url)
-
 # Проверка статуса ответа и вывод результата
 if response.status_code == 200:
     print("Response:", response.json()["message"])
@@ -69,8 +88,6 @@ else:
     print('Status code:', response.status_code)
     print('Response:', response.json())
 
-print("\n некст \n")
-"""
 url = 'http://localhost:5000/auth/delete_expired_token'
 
 
@@ -86,12 +103,10 @@ else:
     print('Status code:', response.status_code)
     print('Response:', response.json)
 
-"""
-
 url = 'http://localhost:5000/auth/set_max_users'
 
 body = {
-    "token": '92fc459a-e301-4c6c-86e0-4ecab5d9db82',
+    "token": '78126743-b1ee-4f6c-85ba-637396ad3869',
     'max_users': 10
 }
 
@@ -122,3 +137,23 @@ else:
     print('Failed to get token')
     print('Status code:', response.status_code)
     print('Response:', response.json())
+
+# URL вашего сервиса
+url = 'http://127.0.0.1:5000/auth/login'
+
+body = {
+    "name": "Trighty",
+    "password": "FIRST",
+}
+
+# Отправка POST-запроса
+response = requests.post(url, json=body)
+
+# Проверка статуса ответа и вывод результата
+if response.status_code == 201:
+    print('Login user successfully')
+    print('Response:', response.json())
+else:
+    print('Failed to login user')
+    print('Status code:', response.status_code)
+    print('Response:', response.json())"""

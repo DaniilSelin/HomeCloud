@@ -1,13 +1,11 @@
 FROM ubuntu:latest
-LABEL authors="vboxuser"
+LABEL authors="Daniil_auth_service"
 
 WORKDIR /server
 
 COPY ./__init__.py .
 
 COPY ./auth_service ./auth_service
-
-COPY ./database_service ./database_service
 
 WORKDIR /server/auth_service
 
@@ -22,7 +20,7 @@ RUN apt-get update && apt-get install -y \
 RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
-ENV PYTHONPATH="/server"
+ENV PYTHONPATH="/server:/server/auth_service"
 
 RUN pip3 install -r requirements.txt
 

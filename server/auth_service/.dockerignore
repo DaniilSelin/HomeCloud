@@ -1,0 +1,4 @@
+__pycache__/
+Dockerfile
+*.pyc
+../__pycache__/
