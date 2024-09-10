@@ -1,0 +1,54 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:19.03.12
+        options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and start services
+        run: |
+          cd server
+          docker-compose up -d
+
+      - name: Install dependencies
+        run: |
+          cd server
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          cd server
+          pytest --maxfail=1 --disable-warnings -q
+
+      - name: Stop and remove containers
+        run: |
+          cd server
+          docker-compose down
+
+      - name: Upload logs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: log
+          path: server/log
