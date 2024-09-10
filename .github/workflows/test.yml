@@ -40,16 +40,16 @@ jobs:
       - name: Install dependencies
         run: |
           cd server
-          pip install -r requirements.txt
+          pip install pytest
 
       - name: Run tests
         run: |
-          cd server
-          pytest --maxfail=1 --disable-warnings -q
+          cd ../.github/workflows/
+          python3 pytest
 
       - name: Stop and remove containers
         run: |
-          cd server
+          cd ../../server
           docker-compose down
 
       - name: Upload logs as artifacts
