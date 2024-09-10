@@ -44,7 +44,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python3 pytest
+          pytest --maxfail=1 --disable-warnings -q
 
       - name: Stop and remove containers
         run: |
