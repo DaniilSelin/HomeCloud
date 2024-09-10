@@ -28,10 +28,13 @@ def setup_token(admin_token):
 
 
 @pytest.fixture(scope="function")
-def setup_user(setup_token):
+def setup_user(request, setup_token):
+    # Получаем имя пользователя из параметра или создаем уникальное
+    user_name = request.param if hasattr(request, 'param') else f'fixture_user'
+
     response = requests.post(f'{BASE_URL}/auth/register', json={
         'token': setup_token,
-        'name': 'fixture_user',
+        'name': user_name,
         'password': 'test_password'
     })
     assert response.status_code == 201

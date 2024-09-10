@@ -1,7 +1,7 @@
 import os
 from views import auth_blueprint, create_first_admin
 from flask import Flask
-from server.database_service.connection import engine
+from server.database_service.python_database_service.connection import engine
 from models import Base
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
@@ -24,6 +24,7 @@ if missing_vars:
 app = Flask(__name__)
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+app.config['JWT_ALGORITHM'] = 'HS256'
 
 # Инициализация JWTManager
 jwt = JWTManager(app)

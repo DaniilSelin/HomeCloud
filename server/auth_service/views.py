@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
 from models import RegistrationToken, User
-from server.database_service.connection import get_bd
+from server.database_service.python_database_service.connection import get_bd
 import datetime
-import uuid, os
+import uuid, os, time, json
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
-from flask_jwt_extended import get_jwt, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt, create_access_token, jwt_required
+from logging_config import logger
 
 AnswerFromAuthService = {
     "status": "success",
@@ -16,6 +17,60 @@ AnswerFromAuthService = {
         "name": "John Doe"
     }
 }
+
+
+# декоратор для логов
+def log_requests_and_responses(func):
+    """Декоратор для логирования запросов и ответов"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        request_data = {
+            'url': request.url,
+            'method': request.method,
+            'params': request.args.to_dict(),
+            'ip': request.remote_addr,
+            'user_id': getattr(request, 'user_id', 'N/A'),
+            'admin': getattr(request, 'admin', 'N/A'),
+        }
+
+        try:
+            response = func(*args, **kwargs)
+            if isinstance(response, tuple):
+                response_body = response[0] if isinstance(response[0], str) else response[0].get_data(as_text=True)
+                status_code = response[1]
+            else:
+                response_body = response.get_json()
+                status_code = response.status_code
+
+            # Преобразуем строку JSON в словарь
+            if isinstance(response_body, str):
+                try:
+                    response_body = json.loads(response_body)
+                except json.JSONDecodeError:
+                    response_body = {}
+
+            duration = (time.time() - start_time) * 1000
+            response_data = {
+                'status_code': status_code,
+                'response_body': response_body,
+                'duration': duration
+            }
+
+            # Объединяем данные о запросе и ответе
+            log_data = {**request_data, **response_data}
+            logger.info('Request and Response', extra=log_data)
+
+            # Если это кортеж, возвращаем его как есть, иначе — объект Response
+            if isinstance(response, tuple):
+                return response_body, status_code
+            else:
+                return response
+        except Exception as e:
+            logger.error('Exception occurred', extra={**request_data, 'duration': (time.time() - start_time) * 1000})
+            raise
+
+    return wrapper
 
 
 # декоратор для отлова стандартных ошибок
@@ -518,7 +573,7 @@ class AuthService:
     @handle_exceptions
     def unset_admin(db, data, user_id):
         user_id_got = data.get("user_id")
-        admin_key = os.getenv("admin_key")
+        admin_key = data.get("admin_key")
 
         if user_id_got:
             user_id = user_id_got
@@ -534,14 +589,14 @@ class AuthService:
         if user is None:
             return jsonify({
                 'error': 'User not found',
-                'message': f'Failed to set admin. No user found with ID {user_id}.'
+                'message': f'Failed to unset admin. No user found with ID {user_id}.'
             }), 404
 
         user.admin = False
         db.commit()
 
         return jsonify({
-            'message': 'Set admin successfully',
+            'message': 'Unset admin successfully',
             "data": {}
         }), 201
 
@@ -552,6 +607,7 @@ auth_blueprint = Blueprint('auth', __name__)
 
 @auth_blueprint.route("/auth/generate_token", methods=["POST"])
 @admin_required
+@log_requests_and_responses
 def generate_token():
     """
     Создает новый токен.
@@ -571,6 +627,7 @@ def generate_token():
 
 @auth_blueprint.route("/auth/get_tokens", methods=["GET"])
 @admin_required
+@log_requests_and_responses
 def get_tokens():
     """
     Возвращает все токены.
@@ -593,6 +650,7 @@ def get_tokens():
 
 @auth_blueprint.route("/auth/update_token_expiry", methods=["PATCH"])
 @admin_required
+@log_requests_and_responses
 def update_token_expiry():
     """
     Обновляет время действия токена на переданное количество дней.
@@ -612,6 +670,7 @@ def update_token_expiry():
 
 @auth_blueprint.route("/auth/delete_expired_token", methods=["DELETE"])
 @admin_required
+@log_requests_and_responses
 def delete_expired_token():
     """
     Удаляет все токены, у которых истек срок годности.
@@ -631,6 +690,7 @@ def delete_expired_token():
 
 @auth_blueprint.route("/auth/delete_token", methods=["DELETE"])
 @admin_required
+@log_requests_and_responses
 def delete_token():
     """
     Удаляет указанный токен.
@@ -650,6 +710,7 @@ def delete_token():
 
 @auth_blueprint.route("/auth/set_max_users", methods=["PATCH"])
 @admin_required
+@log_requests_and_responses
 def set_max_users():
     """
     Обновляет максимальное количество квот для регистрации.
@@ -668,6 +729,7 @@ def set_max_users():
 
 
 @auth_blueprint.route('/auth/register', methods=['POST'])
+@log_requests_and_responses
 def register():
     """
     Создает нового пользователя.
@@ -686,6 +748,7 @@ def register():
 
 
 @auth_blueprint.route("/auth/login", methods=["POST"])
+@log_requests_and_responses
 def login():
     """
     Вход в аккаунт.
@@ -705,6 +768,7 @@ def login():
 
 @auth_blueprint.route("/auth/get_users", methods=["GET"])
 @jwt_required()
+@log_requests_and_responses
 def get_users():
     """
     Возвращает список пользователей.
@@ -727,6 +791,7 @@ def get_users():
 
 @auth_blueprint.route("/auth/get_user_by_id", methods=["GET"])
 @jwt_required()
+@log_requests_and_responses
 def get_user_by_id():
     """
     Возвращает информацию о пользователе по его ID.
@@ -746,6 +811,7 @@ def get_user_by_id():
 
 @auth_blueprint.route("/auth/get_user_by_name", methods=["GET"])
 @jwt_required()
+@log_requests_and_responses
 def get_user_by_name():
     """
     Возвращает информацию о пользователе по его имени.
@@ -765,6 +831,7 @@ def get_user_by_name():
 
 @auth_blueprint.route("/auth/change_password", methods=["PATCH"])
 @jwt_required()
+@log_requests_and_responses
 def change_password():
     """
     Изменяет пароль пользователя.
@@ -779,11 +846,14 @@ def change_password():
      "data": {}
     }
     """
-    return AuthService.change_password(user_id=get_jwt_identity(), data=request.get_json())
+    claims = get_jwt()
+    user_id = claims.get('sub', {}).get('user_id')
+    return AuthService.change_password(user_id=user_id, data=request.get_json())
 
 
 @auth_blueprint.route("/auth/update_user", methods=["PATCH"])
 @jwt_required()
+@log_requests_and_responses
 def update_name_user():
     """
     Обновляет имя пользователя.
@@ -798,12 +868,14 @@ def update_name_user():
      "data": {}
     }
     """
-    user_id = get_jwt_identity()
+    claims = get_jwt()
+    user_id = claims.get('sub', {}).get('user_id')
     return AuthService.update_name_user(user_id=user_id, data=request.get_json())
 
 
 @auth_blueprint.route("/auth/set_admin", methods=["PATCH"])
 @jwt_required()
+@log_requests_and_responses
 def set_admin():
     """
     Назначает пользователя администратором. Если не передавать идентнификатор пользоваетля,
@@ -819,12 +891,14 @@ def set_admin():
      "data": {}
     }
     """
-    user_id = get_jwt_identity()
+    claims = get_jwt()
+    user_id = claims.get('sub', {}).get('user_id')
     return AuthService.set_admin(user_id=user_id, data=request.get_json())
 
 
 @auth_blueprint.route("/auth/unset_admin", methods=["PATCH"])
 @jwt_required()
+@log_requests_and_responses
 def unset_admin():
     """
     Снимает статус администратора с пользователя.
@@ -839,5 +913,6 @@ def unset_admin():
      "data": {}
     }
     """
-    user_id = get_jwt_identity()
+    claims = get_jwt()
+    user_id = claims.get('sub', {}).get('user_id')
     return AuthService.unset_admin(user_id=user_id, data=request.get_json())

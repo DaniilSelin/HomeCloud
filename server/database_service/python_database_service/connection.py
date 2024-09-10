@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from server.database_service.config import Config
+from server.database_service.python_database_service.config import Config
 
 """
 Файл для подключения к бд
