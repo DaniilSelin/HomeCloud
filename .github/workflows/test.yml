@@ -29,7 +29,6 @@ jobs:
       - name: Set up PostgreSQL database
         run: |
           export PGPASSWORD=postgres
-          # Создаем бд и пользователя
           psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
           psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
           psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
@@ -54,21 +53,18 @@ jobs:
       - name: Build and start services
         run: |
           cd server
-          docker-compose -f docker-compose.yml up -d
+          docker-compose -f docker-compose.yml up -d --build
 
-      - name: Install dependencies
+      - name: Wait for services to start
         run: |
-          cd server/auth_service/test/
-          pip install pytest
-
-      - name: Wait for server to start
-        run: sleep 5
+          sleep 10  # Увеличиваем время ожидания
 
       - name: Show Flask container logs
         run: docker logs server-auth_service-1
 
       - name: Run tests
         run: |
+          cd server/auth_service/test/
           pytest --maxfail=1 --disable-warnings -q
 
       - name: Upload logs as artifacts
