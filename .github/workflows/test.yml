@@ -61,6 +61,12 @@ jobs:
           cd server/auth_service/test/
           pip install pytest
 
+      - name: Wait for server to start
+        run: sleep 5
+
+      - name: Show Flask container logs
+        run: docker logs server-auth_service-1
+
       - name: Run tests
         run: |
           pytest --maxfail=1 --disable-warnings -q
