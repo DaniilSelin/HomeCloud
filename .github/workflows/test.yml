@@ -37,10 +37,19 @@ jobs:
           cd server
           docker-compose -f docker-compose.yml up -d
 
+      - name: Check running containers
+        run: |
+          docker ps -a
+          docker logs server-auth_service-1
+
+      - name: Check if port 5000 is open inside container
+        run: |
+          docker exec -it server-auth_service-1 netstat -tuln | grep 5000
+
       - name: Install dependencies
         run: |
           cd server/auth_service/test/
-          sleep 10  # Задержка в 10 секунд для старат онтейнеров
+          dockerize -wait tcp://127.0.0.1:5000 -timeout 30s
           curl http://127.0.0.1:5000/auth/login
           pip install pytest
 
