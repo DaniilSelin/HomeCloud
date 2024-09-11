@@ -39,7 +39,7 @@ jobs:
 
       - name: Create database and user
         run: |
-          psql -h ${{ secrets.PG_HOST }} -U ${{ secrets.PG_USER }} -d postgres -c "CREATE DATABASE homecloud;"
+          psql -h ${{ secrets.PG_HOST }} -U ${{ secrets.PG_USER }} -c "CREATE DATABASE homecloud;" postgres
           psql -h ${{ secrets.PG_HOST }} -U ${{ secrets.PG_USER }} -d homecloud -c "CREATE USER homecloudauthsevice WITH PASSWORD '123';"
           psql -h ${{ secrets.PG_HOST }} -U ${{ secrets.PG_USER }} -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
 
