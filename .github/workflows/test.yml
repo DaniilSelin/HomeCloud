@@ -31,7 +31,7 @@ jobs:
           export PGPASSWORD=postgres
           # Создаем бд и пользователя
           psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
-          psql -h localhost -U postgres -d homecloud -c "CREATE USER homeclouduser WITH ENCRYPTED PASSWORD 'password';"
+          psql -h localhost -U postgres -d homecloud -c "CREATE USER homeclouduser WITH ENCRYPTED PASSWORD '123';"
           psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homeclouduser;"
 
       - name: Install dependencies
