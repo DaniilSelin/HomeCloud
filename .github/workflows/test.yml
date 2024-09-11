@@ -28,6 +28,7 @@ jobs:
 
       - name: Set up PostgreSQL database
         run: |
+          export PGPASSWORD=postgres
           # Создаем бд и пользователя
           psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
           psql -h localhost -U postgres -d homecloud -c "CREATE USER homeclouduser WITH ENCRYPTED PASSWORD 'password';"
