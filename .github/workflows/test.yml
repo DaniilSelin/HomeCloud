@@ -40,7 +40,6 @@ jobs:
       - name: Install dependencies
         run: |
           cd server/auth_service/test/
-          dockerize -wait tcp://127.0.0.1:5000 -timeout 30s
           pip install pytest
 
       - name: Run tests
