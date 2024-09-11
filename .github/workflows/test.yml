@@ -34,15 +34,24 @@ jobs:
           psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
           psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
 
-      - name: Stop local PostgreSQL
-        run: |
-          sudo systemctl stop postgresql || echo "PostgreSQL is not running"
-
       - name: Install Docker Compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
+      - name: Stop local PostgreSQL
+        run: |
+          sudo systemctl stop postgresql || echo "PostgreSQL is not running"
+
+      - name: Check if port 5432 is free
+        run: |
+          if lsof -i:5432; then
+            echo "Port 5432 is already in use. Trying to stop the service."
+            sudo systemctl stop postgresql || echo "PostgreSQL is not running"
+          else
+            echo "Port 5432 is free."
+          fi
+        
       - name: Build and start services
         run: |
           cd server
