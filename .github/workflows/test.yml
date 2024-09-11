@@ -12,14 +12,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      docker:
-        image: docker:19.03.12
-        options: --privileged
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Create PostgreSQL user and database
+        run: |
+          psql -h localhost -U postgres -c "CREATE USER homecloudauthsevice WITH PASSWORD '123';"
+          psql -h localhost -U postgres -c "CREATE DATABASE homecloud OWNER homecloudauthsevice;"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
