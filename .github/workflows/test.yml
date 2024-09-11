@@ -70,6 +70,7 @@ jobs:
       - name: Run tests
         run: |
           cd server/auth_service/test/
+          pip install pytest
           pytest --maxfail=1 --disable-warnings -q
 
       - name: Upload logs as artifacts
