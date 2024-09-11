@@ -34,6 +34,10 @@ jobs:
           psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
           psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
 
+      - name: Stop local PostgreSQL
+        run: |
+          sudo systemctl stop postgresql || echo "PostgreSQL is not running"
+
       - name: Install Docker Compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
