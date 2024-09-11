@@ -59,6 +59,11 @@ jobs:
         run: |
           sleep 10  # Увеличиваем время ожидания
 
+      - name: Check database connection
+        run: |
+          export PGPASSWORD=123
+          psql -h localhost -U homecloudauthsevice -d homecloud -c "\q" || exit 1
+
       - name: Show Flask container logs
         run: docker logs server-auth_service-1
 
