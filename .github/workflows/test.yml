@@ -28,10 +28,7 @@ jobs:
 
       - name: Set up PostgreSQL database
         run: |
-          # Wait for PostgreSQL to be ready
-          dockerize -wait tcp://localhost:5432 -timeout 1m
-
-          # Create database and user
+          # Создаем бд и пользователя
           psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
           psql -h localhost -U postgres -d homecloud -c "CREATE USER homeclouduser WITH ENCRYPTED PASSWORD 'password';"
           psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homeclouduser;"
