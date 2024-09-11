@@ -42,9 +42,15 @@ jobs:
           cd server/auth_service/test/
           pip install pytest
 
+      - name: Install Dockerize
+        run: |
+          curl -sSL https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz | tar -C /usr/local/bin -xzv
+
+      - name: Wait for auth_service to be ready
+        run: dockerize -wait tcp://127.0.0.1:5000 -timeout 60s
+
       - name: Run tests
         run: |
-          sleep 30
           pytest --maxfail=1 --disable-warnings -q
 
       - name: Stop and remove containers
