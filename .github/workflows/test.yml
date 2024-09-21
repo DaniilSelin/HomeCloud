@@ -26,13 +26,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up PostgreSQL database
-        run: |
-          export PGPASSWORD=postgres
-          psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
-          psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
-          psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
-
       - name: Install Docker Compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -55,9 +48,21 @@ jobs:
           cd server
           docker-compose -f docker-compose.yml up -d --build
 
-      - name: Wait for services to start
+      - name: Wait for PostgreSQL to be ready
         run: |
-          sleep 10  # Увеличиваем время ожидания
+          sleep 10
+          export PGPASSWORD=postgres
+          until psql -h localhost -U postgres -c "\q"; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Set up PostgreSQL database
+        run: |
+          export PGPASSWORD=postgres
+          psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
+          psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
+          psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
 
       - name: Check database connection
         run: |
