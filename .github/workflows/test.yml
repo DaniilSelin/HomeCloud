@@ -29,14 +29,16 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build Docker image
-      run: docker build -t auth_service ./auth_service
+      run: |
+        cd server
+        docker build -t auth_service ./auth_service
 
     - name: Run Docker container
       run: docker run -d -p 5000:5000 --network host auth_service
 
     - name: Run tests
       run: |
-        cd server/auth_service/test/
+        cd ./test/
         pip install pytest
         pytest --maxfail=1 --disable-warnings -q
 
