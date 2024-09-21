@@ -42,11 +42,14 @@ jobs:
         . venv/bin/activate
         pip install -r requirements.txt
 
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$(pwd)/.." >> $GITHUB_ENV
+
     - name: Run auth_service.py
       run: |
         cd server/auth_service
         . venv/bin/activate
-        python auth_service.py & # Запуск сервиса в фоновом режиме
+        python -m auth_service.auth_service & # Запуск сервиса в фоновом режиме
         sleep 10 # Даем время на запуск
 
     - name: Run tests
