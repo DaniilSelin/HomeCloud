@@ -43,7 +43,7 @@ jobs:
     - name: Run auth_service.py
       run: |
         . ./server/auth_service/venv/bin/activate
-        python -m /server/auth_service/auth_service.py # Запуск сервиса в фоновом режиме
+        python3 /server/auth_service/auth_service.py # Запуск сервиса в фоновом режиме
         sleep 10 # Даем время на запуск
 
     - name: Run tests
