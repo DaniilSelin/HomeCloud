@@ -38,7 +38,8 @@ jobs:
 
     - name: Run tests
       run: |
-        cd auth_service/test/
+        ls
+        cd server/auth_service/test/
         pip install pytest
         pytest --maxfail=1 --disable-warnings -q
 
