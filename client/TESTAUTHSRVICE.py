@@ -1,5 +1,7 @@
 import requests
 import os
+
+
 """Response: {'data': [{'created_at': '2024-08-11T10:28:09.427145', 
 'expiry_date': '2024-09-10T10:28:09.415510', 'max_users': 1, 
 'token': '73a49798-c391-4d40-ab5b-79592a086d85'}, 
@@ -17,6 +19,13 @@ print(data)
 access = data['data']['access_token']
 
 
+import jwt
+
+
+decoded = jwt.decode(access, '15517b618c60112042ea471f7609c160b4e59fda71d2099b', algorithms=["HS256"])
+print(decoded)
+
+
 def generate_token():
     response = requests.post(f'{BASE_URL}/auth/generate_token', headers={
         'Authorization': f'Bearer {access}'
@@ -26,14 +35,19 @@ def generate_token():
     return data['data']['token']
 
 
-token = generate_token()
+def setup_user():
+    response = requests.post(f'{BASE_URL}/auth/register', json={
+        'token': generate_token(),
+        'name': 'fixture_user',
+        'password': 'test_password'
+    })
+    print(response.json())
+    return response.json()['data']['user_id']
 
 
-# Предполагается, что пользователь с ID 1 существует
-response = requests.patch(f'{BASE_URL}/auth/change_password', headers={
-        'Authorization': f'Bearer {token}'
-    }, json={'new_password': 'new_test_password'})
-
+response = requests.patch(f'{BASE_URL}/auth/unset_admin', headers={
+        'Authorization': f'Bearer {access}'
+    }, json={'user_id': setup_user(), 'admin_key': 'changeme'})
 data = response.json()
 
 print(data)
