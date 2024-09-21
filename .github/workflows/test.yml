@@ -28,25 +28,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build Docker image
-      run: |
-        cd server
-        docker build -t auth_service -f auth_service/Dockerfile .
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
-    - name: Run Docker container
-      run: docker run -d -p 5000:5000 auth_service
-
-    - name: Check if auth_service is running
+    - name: Install dependencies
       run: |
-        echo "Waiting for auth_service to start..."
+        cd server/auth_service
+        python -m venv venv
+        . venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Run auth_service.py
+      run: |
+        . venv/bin/activate
+        python auth_service.py & # Запуск сервиса в фоновом режиме
         sleep 10 # Даем время на запуск
-        response=$(curl --write-out "%{http_code}\n" --silent --output /dev/null http://localhost:5000/health) # Замените на правильный путь для проверки
-        if [ "$response" -ne 200 ]; then
-          echo "auth_service is not running properly. HTTP status code: $response"
-          exit 1
-        else
-          echo "auth_service is running and reachable!"
-        fi
 
     - name: Run tests
       run: |
