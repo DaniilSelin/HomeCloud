@@ -33,8 +33,8 @@ jobs:
         cd server
         docker build -t auth_service ./auth_service
 
-    - name: Run Docker container
-      run: docker run -d -p 5000:5000 --network host auth_service
+    - name: Build Docker image
+      run: docker build -t auth_service -f auth_service/Dockerfile .
 
     - name: Run tests
       run: |
