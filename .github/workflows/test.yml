@@ -34,10 +34,10 @@ jobs:
         docker build -t auth_service -f auth_service/Dockerfile .
 
     - name: Run Docker container
-      run: docker run -d -p 5000:5000 --network host auth_service
+      run: docker run -d -p 5000:5000 auth_service
 
     - name: Logs
-      run: docker logs auth_service
+      run: docker ps -a
 
     - name: Run tests
       run: |
