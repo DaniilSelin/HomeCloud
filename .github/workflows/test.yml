@@ -36,8 +36,17 @@ jobs:
     - name: Run Docker container
       run: docker run -d -p 5000:5000 auth_service
 
-    - name: Logs
-      run: docker ps -a
+    - name: Check if auth_service is running
+      run: |
+        echo "Waiting for auth_service to start..."
+        sleep 10 # Даем время на запуск
+        response=$(curl --write-out "%{http_code}\n" --silent --output /dev/null http://localhost:5000/health) # Замените на правильный путь для проверки
+        if [ "$response" -ne 200 ]; then
+          echo "auth_service is not running properly. HTTP status code: $response"
+          exit 1
+        else
+          echo "auth_service is running and reachable!"
+        fi
 
     - name: Run tests
       run: |
