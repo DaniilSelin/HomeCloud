@@ -31,18 +31,6 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
-      - name: Stop local PostgreSQL
-        run: |
-          sudo systemctl stop postgresql || echo "PostgreSQL is not running"
-
-      - name: Kill process using port 5432
-        run: |
-          sudo kill -9 $(sudo lsof -t -i:5432) || echo "No process found using port 5432"
-
-      - name: Restart Docker Daemon
-        run: |
-          sudo systemctl restart docker
-
       - name: Set up PostgreSQL database
         run: |
           export PGPASSWORD=postgres
@@ -59,15 +47,23 @@ jobs:
           psql -h localhost -U postgres -c "SELECT 1 FROM pg_roles WHERE rolname='homecloudauthsevice';" || { echo "User homecloudauthsevice does not exist."; exit 1; }
           echo "Database and user exist."
 
-      - name: Build and start services
-        run: |
-          cd server
-          docker-compose -f docker-compose.yml up -d --build
-
       - name: Check database connection
         run: |
           export PGPASSWORD=123
           psql -h localhost -U homecloudauthsevice -d homecloud -c "\q" || exit 1
+
+      - name: Stop local PostgreSQL
+        run: |
+          sudo systemctl stop postgresql || echo "PostgreSQL is not running"
+
+      - name: Restart Docker Daemon
+        run: |
+          sudo systemctl restart docker
+
+      - name: Build and start services
+        run: |
+          cd server
+          docker-compose -f docker-compose.yml up -d --build
 
       - name: Show Flask container logs
         run: docker logs server-auth_service-1
