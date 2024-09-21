@@ -33,6 +33,7 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
+          export PGPASSWORD=postgres
           sleep 10
           until psql -h localhost -U postgres -c "\q"; do
             echo "Waiting for PostgreSQL..."
