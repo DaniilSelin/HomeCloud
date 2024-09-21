@@ -31,6 +31,14 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          sleep 10
+          until psql -h localhost -U postgres -c "\q"; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
       - name: Set up PostgreSQL database
         run: |
           export PGPASSWORD=postgres
@@ -45,7 +53,7 @@ jobs:
           psql -h localhost -U postgres -c "SELECT 1 FROM pg_database WHERE datname='homecloud';" || { echo "Database homecloud does not exist."; exit 1; }
           # Проверяем, существует ли пользователь homecloudauthsevice
           psql -h localhost -U postgres -c "SELECT 1 FROM pg_roles WHERE rolname='homecloudauthsevice';" || { echo "User homecloudauthsevice does not exist."; exit 1; }
-          echo "Database and user exist."
+          echo "Database and user exisыt."
 
       - name: Check database connection
         run: |
