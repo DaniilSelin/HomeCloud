@@ -39,19 +39,23 @@ jobs:
         . venv/bin/activate
         pip install -r server/auth_service/requirements.txt
 
+    - name: Create symbolic link for server module
+      run: |
+        ln -s $GITHUB_WORKSPACE/server /home/runner/work/HomeCloud/HomeCloud/server/auth_service/
+        echo "Symbolic link created for 'server'"
+
     - name: Run auth_service.py
       run: |
         . venv/bin/activate
         ls ./server/auth_service
-        python3 ./server/auth_service/auth_service.py # Запуск сервиса в фоновом режиме
+        python3 ./server/auth_service/auth_service.py &  # Запуск сервиса в фоновом режиме
         sleep 10 # Даем время на запуск
 
     - name: Run tests
       run: |
-        ls
-        cd server/auth_service/test/
-        . ../venv/bin/activate
+        . venv/bin/activate
         pip install pytest
+        cd server/auth_service/test/
         pytest --maxfail=1 --disable-warnings -q
 
     - name: Upload logs as artifacts
