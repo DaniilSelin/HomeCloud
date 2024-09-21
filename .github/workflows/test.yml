@@ -43,26 +43,26 @@ jobs:
         run: |
           sudo systemctl restart docker
 
-      - name: Build and start services
-        run: |
-          cd server
-          docker-compose -f docker-compose.yml up -d --build
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          sleep 10
-          export PGPASSWORD=postgres
-          until psql -h localhost -U postgres -c "\q"; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-
       - name: Set up PostgreSQL database
         run: |
           export PGPASSWORD=postgres
           psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
           psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
           psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
+
+      - name: Verify PostgreSQL setup
+        run: |
+          export PGPASSWORD=postgres
+          # Проверяем, существует ли база данных homecloud
+          psql -h localhost -U postgres -c "SELECT 1 FROM pg_database WHERE datname='homecloud';" || { echo "Database homecloud does not exist."; exit 1; }
+          # Проверяем, существует ли пользователь homecloudauthsevice
+          psql -h localhost -U postgres -c "SELECT 1 FROM pg_roles WHERE rolname='homecloudauthsevice';" || { echo "User homecloudauthsevice does not exist."; exit 1; }
+          echo "Database and user exist."
+
+      - name: Build and start services
+        run: |
+          cd server
+          docker-compose -f docker-compose.yml up -d --build
 
       - name: Check database connection
         run: |
