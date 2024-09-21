@@ -41,6 +41,7 @@ jobs:
         echo "PYTHONPATH=$(pwd):$(pwd)/auth_service" >> $GITHUB_ENV
         . venv/bin/activate
         pip install -r requirements.txt
+        ln -s $(pwd)/.. /server/auth_service/server 
 
     - name: Run auth_service.py
       run: |
