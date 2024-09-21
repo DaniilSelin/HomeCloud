@@ -36,8 +36,8 @@ jobs:
     - name: Run Docker container
       run: docker run -d -p 5000:5000 --network host auth_service
 
-    - name: Run Docker container
-      run: docker ps -a
+    - name: Logs
+      run: docker logs auth_service
 
     - name: Run tests
       run: |
