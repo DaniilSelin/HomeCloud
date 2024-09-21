@@ -75,7 +75,9 @@ jobs:
           docker-compose -f docker-compose.yml up -d --build
 
       - name: Show Flask container logs
-        run: docker logs server-auth_service-1
+        run: |
+          docker ps -a
+          docker logs server-auth_service-1
 
       - name: Run tests
         run: |
