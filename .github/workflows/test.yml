@@ -35,14 +35,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd server/auth_service
         python -m venv venv
         . venv/bin/activate
         pip install -r requirements.txt
 
     - name: Run auth_service.py
       run: |
-        . ./server/auth_service/venv/bin/activate
+        . venv/bin/activate
         python3 /server/auth_service/auth_service.py # Запуск сервиса в фоновом режиме
         sleep 10 # Даем время на запуск
 
