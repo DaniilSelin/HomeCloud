@@ -42,12 +42,6 @@ jobs:
         . venv/bin/activate
         pip install -r requirements.txt
 
-    - name: Set PYTHONPATH
-      run: |
-        cd server
-        export PYTHONPATH=$(pwd)/..
-        echo "PYTHONPATH set to $PYTHONPATH"
-
     - name: Run auth_service.py
       run: |
         cd server/auth_service
