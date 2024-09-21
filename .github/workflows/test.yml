@@ -44,8 +44,9 @@ jobs:
 
     - name: Set PYTHONPATH
       run: |
-        cd server/auth_service
-        echo "PYTHONPATH=$(pwd)/.." >> $GITHUB_ENV
+        cd server
+        export PYTHONPATH=$(pwd)/..
+        echo "PYTHONPATH set to $PYTHONPATH"
 
     - name: Run auth_service.py
       run: |
