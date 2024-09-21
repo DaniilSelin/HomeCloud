@@ -37,7 +37,7 @@ jobs:
       run: |
         python -m venv venv
         . venv/bin/activate
-        pip install -r requirements.txt
+        pip install -r server/auth_service/requirements.txt
 
     - name: Run auth_service.py
       run: |
