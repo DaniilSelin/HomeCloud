@@ -1,0 +1,41 @@
+name: Check docker-compose
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install PostgreSQL
+        run: |
+          sudo apt update
+          sudo apt install -y postgresql postgresql-contrib
+
+      - name: Set up PostgreSQL database
+        run: |
+          export PGPASSWORD=postgres
+          sudo -u postgres psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
+          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
+          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
+
+      - name: Install Docker
+        run: |
+          sudo apt install -y docker.io docker-compose
+
+      - name: Start Docker Compose
+        run: |
+          cd server
+          docker-compose -f docker-compose.yml up -d --build > docker.log 2>&1
+          
+      - name: Upload log artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-log
+          path: server/docker.log
