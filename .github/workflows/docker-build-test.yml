@@ -17,17 +17,20 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y postgresql postgresql-contrib
-     
+
       - name: Start PostgreSQL service
         run: |
           sudo service postgresql start
-      
-      - name: Set up PostgreSQL database
+
+      - name: Set up PostgreSQL database and user
         run: |
-          export PGPASSWORD=postgres
-          sudo -u postgres psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
-          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
-          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
+          # Устанавливаем пароль для пользователя postgres
+          sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+          
+          # Создаем базу данных и пользователя
+          sudo -u postgres psql -c "CREATE DATABASE homecloud;"
+          sudo -u postgres psql -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
+          sudo -u postgres psql -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
 
       - name: Install Docker
         run: |
@@ -36,10 +39,13 @@ jobs:
       - name: Start Docker Compose
         run: |
           cd server
-          docker-compose -f docker-compose.yml up -d --build > docker.log 2>&1
-          
+          # Создаем директорию для логов
+          mkdir -p log
+          # Запускаем docker-compose и записываем логи в файл
+          docker-compose -f docker-compose.yml up -d --build > log/docker.log 2>&1
+
       - name: Upload log artifact
         uses: actions/upload-artifact@v3
         with:
           name: docker-log
-          path: server/docker.log
+          path: server/log/docker.log
