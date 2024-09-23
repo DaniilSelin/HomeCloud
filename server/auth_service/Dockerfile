@@ -5,7 +5,7 @@ WORKDIR /server
 
 COPY ./__init__.py .
 
-COPY ./auth_service ./auth_service
+COPY ./ ./auth_service
 
 WORKDIR /server/auth_service
 
