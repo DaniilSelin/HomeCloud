@@ -4,14 +4,17 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  setup:
+  test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install PostgreSQL
         run: |
@@ -22,26 +25,21 @@ jobs:
         run: |
           sudo service postgresql start
 
-      - name: Set up PostgreSQL database and user
+      - name: Set up PostgreSQL database
         run: |
-          # Устанавливаем пароль для пользователя postgres
-          sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
-          
-          # Создаем базу данных и пользователя
-          sudo -u postgres psql -c "CREATE DATABASE homecloud;"
-          sudo -u postgres psql -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
-          sudo -u postgres psql -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
+          export PGPASSWORD=postgres
+          sudo -u postgres psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
+          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
+          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
 
-      - name: Install Docker
+      - name: Install Docker Compose
         run: |
-          sudo apt install -y docker.io docker-compose
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Start Docker Compose
         run: |
           cd server
-          # Создаем директорию для логов
-          mkdir -p log
-          # Запускаем docker-compose и записываем логи в файл
           docker-compose -f docker-compose.yml up -d --build > log/docker.log 2>&1
 
       - name: Upload log artifact
