@@ -22,9 +22,12 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: Change directory
+      run: cd server
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        file: server/auth_service/Dockerfile
+        file: auth_service/Dockerfile
         push: true
         tags: daniilselin/homecloud:auth_service
