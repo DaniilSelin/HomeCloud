@@ -25,7 +25,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        context: ./server/auth_service
+        context: ./HomeCloud/server/auth_service
         file: Dockerfile
         push: true
         tags: daniilselin/homecloud:auth_service
