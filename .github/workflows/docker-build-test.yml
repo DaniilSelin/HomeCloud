@@ -24,14 +24,16 @@ jobs:
       - name: Start PostgreSQL service
         run: |
           sudo service postgresql start
+          sleep 5
 
-      - name: Set up PostgreSQL database
+      - name: Set up PostgreSQL user and database
         env:
           PGPASSWORD: postgres
         run: |
-          sudo -u postgres psql -h localhost -U postgres -c "CREATE DATABASE homecloud;"
-          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
-          sudo -u postgres psql -h localhost -U postgres -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
+          sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -c "CREATE DATABASE homecloud;"
+          sudo -u postgres psql -d homecloud -c "CREATE USER homecloudauthsevice WITH ENCRYPTED PASSWORD '123';"
+          sudo -u postgres psql -d homecloud -c "GRANT ALL PRIVILEGES ON DATABASE homecloud TO homecloudauthsevice;"
 
       - name: Install Docker Compose
         run: |
