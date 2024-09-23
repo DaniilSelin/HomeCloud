@@ -25,6 +25,6 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        file: auth_service/Dockerfile
+        file: server/auth_service/Dockerfile
         push: true
         tags: daniilselin/homecloud:auth_service
