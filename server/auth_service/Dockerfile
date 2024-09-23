@@ -3,9 +3,9 @@ LABEL authors="Daniil_auth_service"
 
 WORKDIR /server
 
-COPY ./__init__.py .
+COPY ./server/__init__.py .
 
-COPY ./ ./auth_service
+COPY ./server/auth_service ./auth_service
 
 WORKDIR /server/auth_service
 
