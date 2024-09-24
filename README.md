@@ -1,6 +1,6 @@
 # HomeCloud
-<p align="center">
-  <img style="float:left" src="https://github.com/DaniilSelin/HomeCloud/blob/main/logo.jpg" alt="HomeCloud Logo" width="200" />
+<p style="margin-left:300">
+  <img style="float:left" src="https://github.com/DaniilSelin/HomeCloud/blob/main/logo.jpg" alt="HomeCloud Logo" width="500" />
 </p>
 <div style="clear:both"> HomeCloud — решение для превращения компьютера в облачное хранилище. </div>
 
