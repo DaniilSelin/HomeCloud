@@ -1,5 +1,5 @@
 # HomeCloud
-![HomeCloud Logo](https://github.com/DaniilSelin/HomeCloud/logo.jpg](https://github.com/DaniilSelin/HomeCloud/blob/main/logo.jpg)
+![HomeCloud Logo](https://github.com/DaniilSelin/HomeCloud/blob/main/logo.jpg)
 
 HomeCloud — решение для превращения компьютера в облачное хранилище.
 # Состояние проекта
