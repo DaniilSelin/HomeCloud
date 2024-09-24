@@ -1,7 +1,6 @@
 # HomeCloud
-![HomeCloud Logo](https://github.com/DaniilSelin/HomeCloud/blob/main/logo.jpg)
-
 HomeCloud — решение для превращения компьютера в облачное хранилище.
+
 # Состояние проекта
  Идет работа над серверной частью!
  Переписал docker-compose.yml, чтобы он брал образ из моего рерозитория на DockerHub.
