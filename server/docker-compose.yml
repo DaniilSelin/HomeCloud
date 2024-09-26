@@ -13,12 +13,11 @@ services:
       - "5432:5432"
 
   auth_service:
-    build:
-      context: .
-      dockerfile: ./auth_service/Dockerfile
+    image: daniilselin/homecloud:auth_service
     volumes:
       - ../server/database_service:/server/database_service
       - ../server/.env:/server/.env
+      - ../server/log:/server/log
     ports:
       - "5000:5000"
     depends_on:

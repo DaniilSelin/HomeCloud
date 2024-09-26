@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package auth_service;
+
+option go_package = "./;proto";
+
+service AuthService {
+    rpc GetUsers (Empty) returns (UserList);
+}
+
+message Empty {}
+
+message User {
+    string name = 1;
+}
+
+message UserList {
+    repeated User users = 1;
+}
