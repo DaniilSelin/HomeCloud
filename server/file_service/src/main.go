@@ -24,11 +24,11 @@ func init() {
 
 func main() {
 	// Регистрируем маршруты
-	api.ReisterRoutes()
+	router := api.RegisterRoutes()
 
 	// Запускаем сервер
 	fmt.Println("Start server on port 8000")
-	err := http.ListenAndServe(":8000", nil)
+	err := http.ListenAndServe(":8000", router)
 	if err != nil {
 		fmt.Println("ERROR - ", err)
 	}

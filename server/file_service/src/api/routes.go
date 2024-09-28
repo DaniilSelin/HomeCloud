@@ -1,9 +1,14 @@
 package api
 
 import (
-	"net/http"
+	"github.com/gorilla/mux"
 )
 
-func ReisterRoutes() {
-	http.HandleFunc("/", Handler)
+func RegisterRoutes() *mux.Router {
+	// Инициализация маршрутизатора
+	router := mux.NewRouter()
+
+	router.HandleFunc("/upload/{path}/{fileName}", uploadFileHandler).Methods("POST")
+
+	return router
 }

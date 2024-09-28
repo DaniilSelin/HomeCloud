@@ -59,13 +59,10 @@ func GetLogger() error {
 
 // LogGRPCRequest логирует запросы gRPC с форматированием
 func LogGRPC(method, params string, duration time.Duration ,statusCode int, responseBody string) {
-	// Форматируем дату и время
-    timestamp := time.Now().Format("2006-01-02 15:04:05,000")
-
     // Форматируем сообщение для логгера
 	logMessage := fmt.Sprintf(
-        "%s - gRPC_service - INFO - method=%s - params=%s - duration=%v ms - status_code=%d - response_body=%s",
-        timestamp, method, params, duration.Milliseconds(), statusCode, responseBody,
+        " - gRPC_service - INFO - method=%s - params=%s - duration=%v ms - status_code=%d - response_body=%s \n - ",
+        method, params, duration.Milliseconds(), statusCode, responseBody,
     )
 
     grpcLogger.Println(logMessage)
