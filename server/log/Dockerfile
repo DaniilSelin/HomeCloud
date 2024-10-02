@@ -1,19 +1,9 @@
 FROM ubuntu:latest
 LABEL authors="Daniil_auth_service"
 
-WORKDIR /server
-
-COPY ./server/__init__.py .
-
-COPY ./server/log ./log
-
 COPY ./logging_config.py ./logging_config.py
 
 COPY ./LOG_service.py ./LOG_service.py
-
-COPY ./requirements.txt ./requirements.txt
-
-WORKDIR /server/log
 
 # Установим Python и pip, очистим кэш, мейби уменьшит образ
 RUN apt-get update && \
@@ -22,7 +12,7 @@ RUN apt-get update && \
 
 RUN python3 -m venv /venv
 
-RUN /venv/bin/pip install -r requirements.txt
+RUN /venv/bin/pip install pika==1.3.2
 
 # Открываем порт RabbitMQ
 EXPOSE 5672
