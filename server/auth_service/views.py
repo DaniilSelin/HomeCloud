@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
 from flask_jwt_extended import get_jwt, create_access_token, jwt_required
-from logging_config import logger
+from logging_config import send_logInfo, send_logError
 
 AnswerFromAuthService = {
     "status": "success",
@@ -59,7 +59,7 @@ def log_requests_and_responses(func):
 
             # Объединяем данные о запросе и ответе
             log_data = {**request_data, **response_data}
-            logger.info('Request and Response', extra=log_data)
+            send_logInfo(log_data)
 
             # Если это кортеж, возвращаем его как есть, иначе — объект Response
             if isinstance(response, tuple):
@@ -67,7 +67,8 @@ def log_requests_and_responses(func):
             else:
                 return response
         except Exception as e:
-            logger.error('Exception occurred', extra={**request_data, 'duration': (time.time() - start_time) * 1000})
+            log_data = {**request_data, 'duration': (time.time() - start_time) * 1000}
+            send_logError(log_data)
             raise
 
     return wrapper
