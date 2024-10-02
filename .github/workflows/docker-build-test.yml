@@ -32,6 +32,6 @@ jobs:
     - name: Build and push log-service image
       uses: docker/build-push-action@v2
       with:
-        file: server/log/Dockerfile
+        context: server/log
         push: true
         tags: daniilselin/homecloud:log_service
