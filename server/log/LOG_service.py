@@ -2,7 +2,7 @@ import pika
 import json
 from logging_config import logger
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitqm"))
+connection = pika.BlockingConnection(pika.ConnectionParameters(host="127.0.0.1"))
 channel = connection.channel()
 
 channel.queue_declare(queue="log_info_queue")
@@ -17,6 +17,8 @@ def CallbackLogInfo(ch, method, properties, body):
         logger.error(f'Failed to decode JSON: {e}')
     except Exception as e:
         logger.error(f'Error while processing log record: {e}')
+    # Подтверждение обработки сообщения
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def CallbackLogError(ch, method, properties, body):
@@ -27,10 +29,12 @@ def CallbackLogError(ch, method, properties, body):
         logger.error(f'Failed to decode JSON: {e}')
     except Exception as e:
         logger.error(f'Error while processing log record: {e}')
+    # Подтверждение обработки сообщения
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 # Подписка на очередь
-channel.basic_consume(queue='log_info_queue', on_message_callback=CallbackLogInfo, auto_ack=True)
-channel.basic_consume(queue='log_error_queue', on_message_callback=CallbackLogError, auto_ack=True)
+channel.basic_consume(queue='log_info_queue', on_message_callback=CallbackLogInfo)
+channel.basic_consume(queue='log_error_queue', on_message_callback=CallbackLogError)
 
 channel.start_consuming()

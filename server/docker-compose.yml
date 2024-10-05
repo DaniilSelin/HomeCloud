@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:latest
+    image: postgres:16
     environment:
       POSTGRES_USER: homecloudauthsevice
       POSTGRES_PASSWORD: 123
@@ -27,13 +27,17 @@ services:
     volumes:
       - ../server/database_service:/server/database_service
       - ../server/.env:/server/.env
-      - ../server/log:/server/log
     ports:
       - "5000:5000"
     depends_on:
       - db
     environment:
       DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
+
+  log_service:
+    image: daniilselin/homecloud:log_service
+    volumes:
+      - ../server/log:/server/log
 
 volumes:
   db_data:

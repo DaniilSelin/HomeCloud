@@ -1,13 +1,45 @@
 import requests
 import os
 
+import pika
+import json
 
+connection = pika.BlockingConnection(pika.ConnectionParameters(host="127.0.0.1"))
+channel = connection.channel()
+
+# Отправка тестового сообщения в log_info_queue
+log_info_message = {"message": "This is a log info message."}
+channel.basic_publish(exchange='', routing_key='log_info_queue', body=json.dumps(log_info_message))
+
+# Отправка тестового сообщения в log_error_queue
+log_error_message = {"error": "This is a log error message."}
+channel.basic_publish(exchange='', routing_key='log_error_queue', body=json.dumps(log_error_message))
+
+print("Messages sent!")
 """Response: {'data': [{'created_at': '2024-08-11T10:28:09.427145', 
 'expiry_date': '2024-09-10T10:28:09.415510', 'max_users': 1, 
 'token': '73a49798-c391-4d40-ab5b-79592a086d85'}, 
 {'created_at': '2024-08-11T10:29:57.183848',
  'expiry_date': '2024-09-10T10:29:57.183310', 'max_users': 1, 
  'token': '1ac9dfd8-718a-4b59-a552-65e6036b4936'}, {'created_at': '2024-08-11T10:32:06.860769', 'expiry_date': '2024-09-10T10:32:06.860197', 'max_users': 1, 'token': 'f2bff8c1-7e50-471a-85d8-123996b7a861'}, {'created_at': '2024-08-11T10:32:30.856932', 'expiry_date': '2024-09-10T10:32:30.856363', 'max_users': 1, 'token': 'c8a64ee9-bfba-4c5d-97ad-41f246e1a4c5'}, {'created_at': '2024-08-11T10:20:46.666386', 'expiry_date': '2024-09-10T10:20:46.663347', 'max_users': 10, 'token': '78126743-b1ee-4f6c-85ba-637396ad3869'}], 'message': 'Tokens retrieved successfully'}
+
+
+import requests
+
+headers = {
+}
+
+file_bytes = open('./text.txt', 'rb').read()
+
+url_upload = 'http://localhost:8000/upload/homeuser/text.txt'
+
+response_upload = requests.post(url_upload, headers=headers, data=file_bytes)
+
+if response_upload.status_code == 200:
+    print('File uploaded successfully')
+else:
+    print(f"Failed to upload file: {response_upload.status_code}")
+
 """
 BASE_URL = 'http://127.0.0.1:5000'
 response = requests.post(BASE_URL + '/auth/login', json={
@@ -38,20 +70,21 @@ def generate_token():
 def setup_user():
     response = requests.post(f'{BASE_URL}/auth/register', json={
         'token': generate_token(),
-        'name': 'fixture_user',
+        'name': 'ture_user',
         'password': 'test_password'
     })
     print(response.json())
     return response.json()['data']['user_id']
 
 
-response = requests.patch(f'{BASE_URL}/auth/unset_admin', headers={
-        'Authorization': f'Bearer {access}'
-    }, json={'user_id': setup_user(), 'admin_key': 'changeme'})
-data = response.json()
+response = requests.get(f'{BASE_URL}/auth/get_users', headers={
+        'Authorization': f'Bearer {access}'})
 
-print(data)
+print(response.status_code, response.text, "LOOOL")
+
+setup_user()
 """
+
 # Отправка POST-запроса
 response = requests.post(url, json=data, headers=headers)
 

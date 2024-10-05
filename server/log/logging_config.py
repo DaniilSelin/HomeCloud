@@ -26,7 +26,7 @@ class RequestFilter(logging.Filter):
 
 
 # Определите абсолютные пути
-log_dir = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+log_dir = os.path.abspath(os.path.dirname(__file__))
 request_detailed_log = os.path.join(log_dir, 'request/request.log')
 error_log = os.path.join(log_dir, 'error/error.log')
 
@@ -61,7 +61,7 @@ LOGGING_CONFIG = {
         },
     },
     'loggers': {
-        'auth_service': {
+        'log_service': {
             'handlers': ['file_detailed', 'file_error'],
             'level': 'INFO',
             'propagate': True,
@@ -76,4 +76,4 @@ LOGGING_CONFIG = {
 }
 
 dictConfig(LOGGING_CONFIG)
-logger = logging.getLogger()
+logger = logging.getLogger("log_service")

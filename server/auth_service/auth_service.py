@@ -5,7 +5,7 @@ from server.database_service.python_database_service.connection import engine
 from models import Base
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
-from logging_config import connection
+
 # Путь к .env файлу
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 
@@ -47,6 +47,3 @@ app.register_blueprint(auth_blueprint, url_prefix='/')
 if __name__ == '__main__':
     app.debug = True
     app.run(host='0.0.0.0', port=5000)
-
-# Закрываем соединение с RabbitMQ
-connection.close()
