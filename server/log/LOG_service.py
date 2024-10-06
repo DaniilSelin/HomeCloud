@@ -1,9 +1,22 @@
 import pika
+import pika.exceptions
 import json
+import time
 from logging_config import logger
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
-channel = connection.channel()
+
+def connect_to_rabbitmq():
+    while True:
+        try:
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+            channel = connection.channel()
+            return channel
+        except pika.exceptions.AMQPConnectionError:
+            logger.error("Failed to connect to RabbitMQ, retrying in 5 seconds...")
+            time.sleep(5)
+
+
+channel = connect_to_rabbitmq()
 
 channel.queue_declare(queue="log_info_queue")
 channel.queue_declare(queue="log_error_queue")

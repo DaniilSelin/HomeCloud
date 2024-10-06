@@ -12,7 +12,7 @@ logger.setLevel(logging.ERROR)
 # Функция для установки соединения с RabbitMQ
 def establish_connection():
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host="127.0.0.1"))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
         channel = connection.channel()
         return connection, channel
     except pika.exceptions.AMQPConnectionError as e:
