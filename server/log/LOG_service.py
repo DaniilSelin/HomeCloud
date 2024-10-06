@@ -2,7 +2,7 @@ import pika
 import json
 from logging_config import logger
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host="127.0.0.1"))
+connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
 channel = connection.channel()
 
 channel.queue_declare(queue="log_info_queue")
