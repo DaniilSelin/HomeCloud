@@ -51,20 +51,9 @@ jobs:
         ln -s $GITHUB_WORKSPACE/server /home/runner/work/HomeCloud/HomeCloud/server/auth_service/
         echo "Symbolic link created for 'server'"
 
-    - name: Wait for RabbitMQ to be ready
-      run: |
-        echo "Waiting for RabbitMQ to be ready..."
-        for i in {1..30}; do
-          if nc -z rabbitmq 5672; then
-            echo "RabbitMQ is ready!"
-            break
-          fi
-          echo "Waiting for RabbitMQ..."
-          sleep 1
-        done
-
     - name: Start log_service
       run: |
+        sudo systemctl start rabbitmq-server
         . venv/bin/activate
         pip install pika
         ls ./server/log
@@ -73,6 +62,7 @@ jobs:
 
     - name: Start auth_service
       run: |
+        sudo systemctl start rabbitmq-server
         . venv/bin/activate
         ls ./server/auth_service
         python3 ./server/auth_service/auth_service.py &  # Запуск сервиса в фоновом режиме
