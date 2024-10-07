@@ -24,6 +24,12 @@ jobs:
         volumes:
           - db_data:/var/lib/postgresql/data
 
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+          - 15672:15672
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -44,11 +50,18 @@ jobs:
         ln -s $GITHUB_WORKSPACE/server /home/runner/work/HomeCloud/HomeCloud/server/auth_service/
         echo "Symbolic link created for 'server'"
 
-    - name: Run auth_service.py
+    - name: Start log_service
       run: |
         . venv/bin/activate
         ls ./server/auth_service
         python3 ./server/auth_service/auth_service.py &  # Запуск сервиса в фоновом режиме
+        sleep 10 # Даем время на запуск
+
+    - name: Run auth_service.py
+      run: |
+        pip install pika
+        ls ./server/log
+        python3 ./server/log/LOG_service.py &  # Запуск сервиса в фоновом режиме
         sleep 10 # Даем время на запуск
 
     - name: Run tests

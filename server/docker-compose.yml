@@ -22,6 +22,15 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
+  log_service:
+    image: daniilselin/homecloud:log_service
+    volumes:
+      - /request:/request
+      - /error:/error
+      - /gRPC:/gRPC
+    depends_on:
+      - rabbitmq
+
   auth_service:
     image: daniilselin/homecloud:auth_service
     volumes:
@@ -33,11 +42,6 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
-
-  log_service:
-    image: daniilselin/homecloud:log_service
-    volumes:
-      - ../server/log:/server/log
 
 volumes:
   db_data:
