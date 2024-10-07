@@ -24,12 +24,6 @@ jobs:
         volumes:
           - db_data:/var/lib/postgresql/data
 
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-          - 15672:15672
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -44,6 +38,13 @@ jobs:
         python -m venv venv
         . venv/bin/activate
         pip install -r server/auth_service/requirements.txt
+
+    - name: Install RabbitMQ
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y rabbitmq-server
+        sudo systemctl start rabbitmq-server
+        sudo systemctl enable rabbitmq-server
 
     - name: Create symbolic link for server module
       run: |
@@ -61,11 +62,6 @@ jobs:
           echo "Waiting for RabbitMQ..."
           sleep 1
         done
-
-    - name: Get RabbitMQ logs
-      run: |
-        docker logs $(docker ps -q --filter "ancestor=rabbitmq:latest")
-
 
     - name: Start log_service
       run: |
