@@ -17,4 +17,4 @@ RUN /venv/bin/pip install pika==1.3.2
 # Открываем порт RabbitMQ
 EXPOSE 5672
 
-CMD ["/venv/bin/python", "LOG_service.py"]
+CMD ["/venv/bin/python", "LOG_service.py", "&"]
