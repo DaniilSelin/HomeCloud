@@ -39,9 +39,9 @@ def CallbackLogInfo(ch, method, properties, body):
         logger.error(f'Failed to decode JSON: {e}')
     except Exception as e:
         logger.error(f'Error while processing log record: {e}')
-    logger_LOGserv.info("Log accepted and processed")
     # Подтверждение обработки сообщения
     ch.basic_ack(delivery_tag=method.delivery_tag)
+    logger_LOGserv.info("Log accepted and processed")
 
 
 def CallbackLogError(ch, method, properties, body):
@@ -52,9 +52,9 @@ def CallbackLogError(ch, method, properties, body):
         logger.error(f'Failed to decode JSON: {e}')
     except Exception as e:
         logger.error(f'Error while processing log record: {e}')
-    logger_LOGserv.info("Log accepted and processed")
     # Подтверждение обработки сообщения
     ch.basic_ack(delivery_tag=method.delivery_tag)
+    logger_LOGserv.info("Log accepted and processed")
 
 
 # Подписка на очередь
