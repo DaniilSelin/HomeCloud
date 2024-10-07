@@ -8,7 +8,7 @@ from logging_config import logger
 
 # Настройка базового логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger_LOGserv = logging.getLogger('log_service')  # Создание логгера для log_service
+logger_LOGserv = logging.getLogger('internal_LOG')
 
 
 # Функция для установки соединения с RabbitMQ
