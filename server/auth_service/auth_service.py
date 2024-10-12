@@ -1,7 +1,7 @@
 import os
 from views import auth_blueprint, create_first_admin
 from flask import Flask
-from server.database_service.python_database_service.connection import engine
+from database.connection import engine
 from models import Base
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
