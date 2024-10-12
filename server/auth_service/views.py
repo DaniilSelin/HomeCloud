@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import RegistrationToken, User
-from server.database_service.python_database_service.connection import get_bd
+from database.connection import get_bd
 import datetime
 import uuid, os, time, json
 from werkzeug.security import generate_password_hash
