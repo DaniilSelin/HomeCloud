@@ -46,7 +46,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
         volumes:
-          - ./server/.env:../env
+          - ./server/.env:./server/.env
 
     steps:
     - name: Set permissions before Checkout
@@ -60,6 +60,10 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
+
+    - name: Cat .env
+      run: |
+        cut server/.env
 
     - name: Log service
       run: |
