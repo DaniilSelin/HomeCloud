@@ -35,7 +35,6 @@ jobs:
 
       log_service:
         image: daniilselin/homecloud:log_service
-        options: "--health-cmd \"curl -f http://localhost:5672\" --health-interval 10s --health-timeout 5s --health-retries 5"
         volumes:
           - ./server/log/request:/request
           - ./server/log/error:/error
@@ -47,7 +46,6 @@ jobs:
           - 5000:5000
         env:
           DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
-        options: "--health-cmd \"curl -f http://localhost:5000\" --health-interval 10s --health-timeout 5s --health-retries 5"
         volumes:
           - ./server/.env:/server/.env
     steps:
