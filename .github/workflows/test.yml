@@ -51,8 +51,10 @@ jobs:
       run: |
         sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server
 
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout code manually
+      run: |
+        git clone https://github.com/DaniilSelin/HomeCloud.git
+        cd HomeCloud
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -81,3 +83,7 @@ jobs:
       with:
         name: log
         path: server/log
+
+    - name: Remove old repository
+      run: |
+        rm -rf ./HomeCloud
