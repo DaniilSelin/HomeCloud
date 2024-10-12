@@ -1,10 +1,9 @@
 name: TEST
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Image"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 jobs:
   test:
@@ -60,6 +59,10 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
+
+    - name: Log service
+      run: |
+        docker ps -a
 
     - name: Run tests
       run: |
