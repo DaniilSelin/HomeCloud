@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # Сервис для базы данных PostgreSQL
       db:
         image: postgres:16
         env:
@@ -28,7 +27,6 @@ jobs:
           --health-timeout 5s 
           --health-retries 5
 
-      # Сервис для RabbitMQ
       rabbitmq:
         image: rabbitmq:management
         ports:
@@ -43,7 +41,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      # log_service
       log_service:
         image: daniilselin/homecloud:log_service
         volumes:
@@ -58,7 +55,6 @@ jobs:
         depends_on:
           - rabbitmq
 
-      # auth_service
       auth_service:
         image: daniilselin/homecloud:auth_service
         ports:
