@@ -48,8 +48,8 @@ jobs:
           DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
         options: "--health-cmd \"curl -f http://localhost:5000\" --health-interval 10s --health-timeout 5s --health-retries 5"
         volumes:
-          - ./server/database_service:/server/database_service
-          - ./server/.env:/server/.env
+          - ./server/database_service:database_service
+          - ./server/.env:.env
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
