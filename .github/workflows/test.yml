@@ -45,21 +45,14 @@ jobs:
           - 5000:5000
         env:
           DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
-        volumes:
-          - ./server/.env:/server/.env
 
     steps:
     - name: Set permissions before Checkout
       run: |
-        sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server
+        sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server/log
 
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Update .env file
-      run: |
-        echo "JWT_SECRET_KEY=15517b618c60112042ea471f7609c160b4e59fda71d2099b" > server/.env
-        echo "ADMIN_SECRET_KEY=changeme" >> server/.env
 
     - name: Set up Python
       uses: actions/setup-python@v2
