@@ -63,6 +63,7 @@ jobs:
     - name: Log service
       run: |
         docker ps -a
+        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) -?
 
     - name: Run tests
       run: |
