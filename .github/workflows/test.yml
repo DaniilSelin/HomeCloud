@@ -70,6 +70,10 @@ jobs:
         echo "JWT_SECRET_KEY=15517b618c60112042ea471f7609c160b4e59fda71d2099b" > server/.env
         echo "ADMIN_SECRET_KEY=changeme" >> server/.env
 
+    - name: Get auth_service container logs
+      run: |
+        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
+
     - name: Run tests
       run: |
         python -m venv venv
