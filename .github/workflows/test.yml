@@ -26,7 +26,6 @@ jobs:
           --health-interval 10s 
           --health-timeout 5s 
           --health-retries 5
-
       rabbitmq:
         image: rabbitmq:management
         ports:
@@ -40,7 +39,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
       log_service:
         image: daniilselin/homecloud:log_service
         volumes:
@@ -52,7 +50,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
       auth_service:
         image: daniilselin/homecloud:auth_service
         ports:
@@ -67,7 +64,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
