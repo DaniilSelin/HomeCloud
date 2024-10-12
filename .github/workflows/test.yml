@@ -51,11 +51,11 @@ jobs:
     steps:
     - name: Waiting auth_service
       run: |
-        until curl -s http://localhost:5000/health; do
-          echo "Waiting for auth_service to be ready..."
-          sleep 5
+        while [ "$(docker inspect --format='{{.State.Health.Status}}' $(docker ps -q --filter "ancestor=daniilselin/homecloud:auth_service"))" != "healthy" ]; do
+          echo "Waiting for auth_service to be healthy..."
+          sleep 2
         done
-  
+
     - name: Set permissions before Checkout
       run: |
         sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server
