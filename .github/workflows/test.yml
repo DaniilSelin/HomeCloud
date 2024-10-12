@@ -65,9 +65,10 @@ jobs:
       run: |
         docker ps -a
 
-    - name: Get auth_service container logs
+    - name: Update .env file
       run: |
-        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
+        echo "JWT_SECRET_KEY=15517b618c60112042ea471f7609c160b4e59fda71d2099b" > server/.env
+        echo "ADMIN_SECRET_KEY=changeme" >> server/.env
 
     - name: Run tests
       run: |
