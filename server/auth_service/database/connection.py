@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from server.database_service.python_database_service.config import Config
+from config import Config
 from sqlalchemy.exc import OperationalError
 import time
 
