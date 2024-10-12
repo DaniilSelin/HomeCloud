@@ -1,20 +1,19 @@
-name: Run Tests
+name: TEST
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
+    types:
+      - completed  # Ждет завершения выполнения
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     services:
+      # Сервис для базы данных PostgreSQL
       db:
-        image: postgres:latest
+        image: postgres:16
         env:
           POSTGRES_USER: homecloudauthsevice
           POSTGRES_PASSWORD: 123
@@ -23,13 +22,59 @@ jobs:
           - 5432:5432
         volumes:
           - db_data:/var/lib/postgresql/data
+        options: > 
+          --health-cmd "pg_isready -U homecloudauthsevice" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
 
+      # Сервис для RabbitMQ
       rabbitmq:
         image: rabbitmq:management
-        options: --health-cmd "rabbitmq-diagnostics ping" --health-interval 10s --health-timeout 5s --health-retries 5
         ports:
           - 5672:5672
           - 15672:15672
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        options: >
+          --health-cmd "rabbitmq-diagnostics ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # log_service
+      log_service:
+        image: daniilselin/homecloud:log_service
+        volumes:
+          - ./log/request:/request
+          - ./log/error:/error
+          - ./log/gRPC:/gRPC
+        options: >
+          --health-cmd "curl -f http://localhost:5672"  # Пример healthcheck
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        depends_on:
+          - rabbitmq
+
+      # auth_service
+      auth_service:
+        image: daniilselin/homecloud:auth_service
+        ports:
+          - 5000:5000
+        env:
+          DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
+        depends_on:
+          - db
+        volumes:
+          - ../server/database_service:/server/database_service
+          - ../server/.env:/server/.env
+        options: >
+          --health-cmd "curl -f http://localhost:5000"  # Пример healthcheck
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - name: Checkout code
@@ -40,33 +85,10 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
-      run: |
-        python -m venv venv
-        . venv/bin/activate
-        pip install -r server/auth_service/requirements.txt
-
     - name: Create symbolic link for server module
       run: |
         ln -s $GITHUB_WORKSPACE/server /home/runner/work/HomeCloud/HomeCloud/server/auth_service/
         echo "Symbolic link created for 'server'"
-
-    - name: Start log_service
-      run: |
-        sudo systemctl start rabbitmq-server
-        . venv/bin/activate
-        pip install pika
-        ls ./server/log
-        python3 ./server/log/LOG_service.py &  # Запуск сервиса в фоновом режиме
-        sleep 10 # Даем время на запуск
-
-    - name: Start auth_service
-      run: |
-        sudo systemctl start rabbitmq-server
-        . venv/bin/activate
-        ls ./server/auth_service
-        python3 ./server/auth_service/auth_service.py &  # Запуск сервиса в фоновом режиме
-        sleep 10 # Даем время на запуск
 
     - name: Run tests
       run: |
