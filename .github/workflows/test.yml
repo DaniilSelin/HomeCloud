@@ -1,10 +1,9 @@
 name: TEST
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Image"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 jobs:
   test:
@@ -52,6 +51,11 @@ jobs:
     - name: Set permissions before Checkout
       run: |
         sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server
+
+    - name: Update .env file
+      run: |
+        docker ps -a
+        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
 
     - name: Checkout code
       uses: actions/checkout@v2
