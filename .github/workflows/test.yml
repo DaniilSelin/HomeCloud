@@ -1,10 +1,9 @@
 name: TEST
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Image"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 jobs:
   test:
@@ -19,35 +18,23 @@ jobs:
           POSTGRES_DB: homecloud
         volumes:
           - db_data:/var/lib/postgresql/data
-        options: > 
-          --health-cmd "pg_isready -U homecloudauthsevice" 
-          --health-interval 10s 
-          --health-timeout 5s 
-          --health-retries 5
+        options: "--health-cmd 'pg_isready -U homecloudauthsevice' --health-interval 10s --health-timeout 5s --health-retries 5"
         ports:
           - 5432:5432
-        
+
       rabbitmq:
         image: rabbitmq:management
         env:
           RABBITMQ_DEFAULT_USER: guest
           RABBITMQ_DEFAULT_PASS: guest
-        options: >
-          --health-cmd "rabbitmq-diagnostics ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        options: "--health-cmd 'rabbitmq-diagnostics ping' --health-interval 10s --health-timeout 5s --health-retries 5"
         ports:
           - 5672:5672
           - 15672:15672
 
       log_service:
         image: daniilselin/homecloud:log_service
-        options: >
-          --health-cmd "curl -f http://localhost:5672" 
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        options: "--health-cmd 'curl -f http://localhost:5672' --health-interval 10s --health-timeout 5s --health-retries 5"
         volumes:
           - ./log/request:/request
           - ./log/error:/error
@@ -59,11 +46,7 @@ jobs:
           - 5000:5000
         env:
           DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
-        options: >
-          --health-cmd "curl -f http://localhost:5000"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        options: "--health-cmd 'curl -f http://localhost:5000' --health-interval 10s --health-timeout 5s --health-retries 5"
         volumes:
           - ../server/database_service:/server/database_service
           - ../server/.env:/server/.env
