@@ -63,7 +63,7 @@ jobs:
 
     - name: Cat .env
       run: |
-        cut server/.env
+        ls server
 
     - name: Log service
       run: |
