@@ -48,12 +48,10 @@ jobs:
           - ./log/error:/error
           - ./log/gRPC:/gRPC
         options: >
-          --health-cmd "curl -f http://localhost:5672"  # Пример healthcheck
+          --health-cmd "curl -f http://localhost:5672" 
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        depends_on:
-          - rabbitmq
 
       auth_service:
         image: daniilselin/homecloud:auth_service
@@ -61,13 +59,11 @@ jobs:
           - 5000:5000
         env:
           DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
-        depends_on:
-          - db
         volumes:
           - ../server/database_service:/server/database_service
           - ../server/.env:/server/.env
         options: >
-          --health-cmd "curl -f http://localhost:5000"  # Пример healthcheck
+          --health-cmd "curl -f http://localhost:5000"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
