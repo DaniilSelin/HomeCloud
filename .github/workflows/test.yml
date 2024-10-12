@@ -49,7 +49,7 @@ jobs:
     steps:
     - name: Set permissions before Checkout
       run: |
-        sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server/log
+        sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server
 
     - name: Checkout code
       uses: actions/checkout@v2
