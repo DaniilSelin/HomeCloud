@@ -49,6 +49,10 @@ jobs:
         volumes:
           - ./server/.env:/server/.env
     steps:
+    - name: Set permissions before Checkout
+      run: |
+        sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server
+
     - name: Checkout code
       uses: actions/checkout@v2
 
@@ -57,13 +61,9 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Create symbolic link for server module
-      run: |
-        ln -s $GITHUB_WORKSPACE/server /home/runner/work/HomeCloud/HomeCloud/server/auth_service/
-        echo "Symbolic link created for 'server'"
-
     - name: Run tests
       run: |
+        python -m venv venv
         . venv/bin/activate
         pip install pytest
         cd server/auth_service/test/
