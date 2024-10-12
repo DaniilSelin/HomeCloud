@@ -46,7 +46,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
         volumes:
-          - ./server/.env:/server/.env
+          - ./server/.env:../env
 
     steps:
     - name: Set permissions before Checkout
@@ -65,21 +65,8 @@ jobs:
       run: |
         docker ps -a
 
-    - name: Update .env file
-      run: |
-        echo "JWT_SECRET_KEY=15517b618c60112042ea471f7609c160b4e59fda71d2099b" > server/.env
-        echo "ADMIN_SECRET_KEY=changeme" >> server/.env
-
-    - name: Install docker-compose
-      run: |
-        sudo curl -L "https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-        docker-compose --version
-    
     - name: Get auth_service container logs
       run: |
-        docker-compose down
-        docker-compose up 
         docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
 
     - name: Run tests
