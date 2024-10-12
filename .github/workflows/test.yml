@@ -66,6 +66,7 @@ jobs:
         python -m venv venv
         . venv/bin/activate
         pip install pytest
+        pip install requests
         cd server/auth_service/test/
         pytest --maxfail=1 --disable-warnings -q
 
