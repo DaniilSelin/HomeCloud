@@ -40,15 +40,6 @@ jobs:
           - ./server/log/error:/error
           - ./server/log/gRPC:/gRPC
 
-      auth_service:
-        image: daniilselin/homecloud:auth_service
-        ports:
-          - 5000:5000
-        env:
-          ADMIN_SECRET_KEY: "changeme"
-          JWT_SECRET_KEY: "15517b618c60112042ea471f7609c160b4e59fda71d2099b"
-        options: "--health-cmd \"curl -f http://auth_service:5000/health\" --health-interval 10s --health-timeout 5s --health-retries 5"
-
     steps:
     - name: Set permissions before Checkout
       run: |
@@ -61,6 +52,23 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        . venv/bin/activate
+        pip install -r server/auth_service/requirements.txt
+
+    - name: Create symbolic link for server module
+      run: |
+        ln -s $GITHUB_WORKSPACE/server /home/runner/work/HomeCloud/HomeCloud/server/auth_service/
+        echo "Symbolic link created for 'server'"
+
+    - name: Run auth_service.py
+      run: |
+        . venv/bin/activate
+        ls ./server/auth_service
+        python3 ./server/auth_service/auth_service.py &  # Запуск сервиса в фоновом режиме
+        sleep 10 # Даем время на запуск
 
     - name: Ping service
       run: |
