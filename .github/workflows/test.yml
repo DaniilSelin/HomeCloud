@@ -38,6 +38,8 @@ jobs:
           - ./server/log/request:/request
           - ./server/log/error:/error
           - ./server/log/gRPC:/gRPC
+        networks:
+          - test_network
 
       auth_service:
         image: daniilselin/homecloud:auth_service
@@ -46,6 +48,11 @@ jobs:
         env:
           ADMIN_SECRET_KEY: "changeme"
           JWT_SECRET_KEY: "15517b618c60112042ea471f7609c160b4e59fda71d2099b"
+        networks:
+          - test_network
+
+    networks:
+      test_network:
 
     steps:
     - name: Set permissions before Checkout
@@ -68,7 +75,7 @@ jobs:
     - name: Check auth_service availability
       run: |
         echo "Checking auth_service availability..."
-        curl -v http://localhost:5000/auth/login || echo "auth_service is not reachable"
+        curl -v http://auth_service:5000/auth/login || echo "auth_service is not reachable"  # используем имя контейнера
 
     - name: Run tests
       run: |
