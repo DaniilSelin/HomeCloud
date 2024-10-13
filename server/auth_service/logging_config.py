@@ -32,7 +32,7 @@ def establish_connection(attempt=0):
         channel = connection.channel()
         logger.info(f"Successfully connected to RabbitMQ using {description}")
         return connection, channel
-    except pika.exceptions.AMQPConnectionError as e:
+    except Exception as e:
         logger.error(f"Failed to connect to RabbitMQ using {description}: {e}")
         time.sleep(5)  # Ждем 5 секунд перед повторной попыткой
         return establish_connection(attempt + 1)
