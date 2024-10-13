@@ -63,14 +63,14 @@ jobs:
     - name: Log service
       run: |
         docker ps -a
-        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
+        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1)
 
 
     - name: Check auth_service availability
       run: |
         echo "Checking auth_service availability..."
         curl -v http://localhost:5000/auth/login || echo "auth_service is not reachable"
-        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
+        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1)
 
     - name: Run tests
       run: |
@@ -82,7 +82,7 @@ jobs:
         pip install requests
         cd server/auth_service/test/
         pytest --maxfail=1 --disable-warnings -q
-        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
+        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1)
 
     - name: Upload logs as artifacts
       uses: actions/upload-artifact@v3
