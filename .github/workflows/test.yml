@@ -70,8 +70,15 @@ jobs:
       run: |
         docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1) || true
 
+    - name: Check auth_service availability
+      run: |
+        echo "Checking auth_service availability..."
+        sleep 10 
+        curl -v http://auth_service:5000/auth/login || echo "auth_service is not reachable"
+
     - name: Run tests
       run: |
+        sleep 10
         python -m venv venv
         . venv/bin/activate
         pip install pytest
