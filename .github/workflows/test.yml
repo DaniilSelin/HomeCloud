@@ -44,17 +44,15 @@ jobs:
         ports:
           - 5000:5000
         env:
-          DATABASE_URL: postgresql+psycopg2://homecloudauthsevice:123@db:5432/homecloud
-
+          ADMIN_SECRET_KEY: "changeme"
+          JWT_SECRET_KEY: "15517b618c60112042ea471f7609c160b4e59fda71d2099b"
     steps:
     - name: Set permissions before Checkout
       run: |
         sudo chown -R $USER:$USER /home/runner/work/HomeCloud/HomeCloud/server
 
-    - name: Checkout code manually
-      run: |
-        git clone https://github.com/DaniilSelin/HomeCloud.git
-        cd HomeCloud
+    - name: Checkout code
+      uses: actions/checkout@v2
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -83,7 +81,3 @@ jobs:
       with:
         name: log
         path: server/log
-
-    - name: Remove old repository
-      run: |
-        rm -rf ./HomeCloud
