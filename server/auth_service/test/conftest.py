@@ -2,7 +2,7 @@ import pytest
 import requests
 
 # ЗАМЕНИ БАЩОВЫЙ НА 127.0.0.1 если тесты на месте проводить хочешь
-BASE_URL = 'http://auth_service:5000'
+BASE_URL = 'http://127.0.0.1:5000'
 
 
 @pytest.fixture(scope='function')
