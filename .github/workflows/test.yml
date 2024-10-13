@@ -70,7 +70,6 @@ jobs:
       run: |
         echo "Checking auth_service availability..."
         curl -v http://localhost:5000/auth/login || echo "auth_service is not reachable"
-        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1)
 
     - name: Run tests
       run: |
@@ -82,10 +81,10 @@ jobs:
         pip install requests
         cd server/auth_service/test/
         pytest --maxfail=1 --disable-warnings -q
-        docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1)
+        curl -v http://localhost:5000/auth/login
 
     - name: Save logs
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: log-files
         path: ./logs/
