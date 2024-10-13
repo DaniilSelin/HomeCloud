@@ -74,13 +74,10 @@ jobs:
         echo "Checking auth_service availability..."
         curl -v http://localhost:5000/auth/login || echo "auth_service is not reachable"
 
-    - name: Check running containers
+    - name: Run tests
       run: |
         sleep 10
         docker ps
-
-    - name: Run tests
-      run: |
         python -m venv venv
         . venv/bin/activate
         pip install pytest
