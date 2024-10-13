@@ -84,6 +84,13 @@ jobs:
         pytest --maxfail=1 --disable-warnings -q
         docker logs $(docker ps -a -q --filter "ancestor=daniilselin/homecloud:auth_service" | head -n 1)
 
+    - name: Save logs
+      uses: actions/upload-artifact@v2
+      with:
+        name: log-files
+        path: ./logs/
+
+
     - name: Upload logs as artifacts
       uses: actions/upload-artifact@v3
       with:
