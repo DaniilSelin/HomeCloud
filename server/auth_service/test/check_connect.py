@@ -8,7 +8,9 @@ BASE_URL_3 = 'http://127.0.0.1:5000'
 
 print("start test connect")
 
+
 def ping():
+    correct_connection = 0
     data = []
     for BASE_URL in [BASE_URL_1, BASE_URL_2, BASE_URL_3]:
         try:
@@ -18,11 +20,13 @@ def ping():
             })
             data.append(response.json())
             print("Connect successful")
+            correct_connection += 1
         except Exception as e:
             print("Connect retry?")
             print(e)
-    print(data)
+    return data, correct_connection
 
-ping()
+
+print(ping())
 
 print("end test connect")

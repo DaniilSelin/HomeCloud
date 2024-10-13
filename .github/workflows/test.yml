@@ -38,8 +38,6 @@ jobs:
           - ./server/log/request:/request
           - ./server/log/error:/error
           - ./server/log/gRPC:/gRPC
-        networks:
-          - test_network
 
       auth_service:
         image: daniilselin/homecloud:auth_service
@@ -48,11 +46,7 @@ jobs:
         env:
           ADMIN_SECRET_KEY: "changeme"
           JWT_SECRET_KEY: "15517b618c60112042ea471f7609c160b4e59fda71d2099b"
-        networks:
-          - test_network
-
-    networks:
-      test_network:
+        options: "--health-cmd \"curl -f http://localhost:5000/health\" --health-interval 10s --health-timeout 5s --health-retries 5"
 
     steps:
     - name: Set permissions before Checkout
