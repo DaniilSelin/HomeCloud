@@ -6,20 +6,19 @@ from models import Base
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 
-# Путь к .env файлу
+# Загрузка переменных окружения из .env файла, если он существует
 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-
-# Загрузка .env файла
-load_dotenv(env_path)
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
 # Список обязательных переменных
 required_vars = ['JWT_SECRET_KEY', 'ADMIN_SECRET_KEY']
 
-# Функция для проверки, подгружены ли все обязательные переменные
+# Проверка, что все обязательные переменные установлены, либо в системе, либо в .env
 missing_vars = [var for var in required_vars if not os.getenv(var)]
 
 if missing_vars:
-    raise EnvironmentError(f"Не удалось загрузить следующие обязательные переменные из .env: {', '.join(missing_vars)}")
+    raise EnvironmentError(f"Не удалось загрузить следующие обязательные переменные: {', '.join(missing_vars)}")
 
 app = Flask(__name__)
 

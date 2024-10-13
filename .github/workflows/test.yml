@@ -1,9 +1,10 @@
 name: TEST
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
+    types:
+      - completed
 
 jobs:
   test:
@@ -46,6 +47,7 @@ jobs:
         env:
           ADMIN_SECRET_KEY: "changeme"
           JWT_SECRET_KEY: "15517b618c60112042ea471f7609c160b4e59fda71d2099b"
+
     steps:
     - name: Set permissions before Checkout
       run: |
@@ -61,6 +63,7 @@ jobs:
 
     - name: Log service
       run: |
+        
         docker ps -a
 
     - name: Get auth_service container logs
