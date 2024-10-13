@@ -63,7 +63,7 @@ jobs:
 
     - name: Log service
       run: |
-        
+        sleep 15
         docker ps -a
 
     - name: Get auth_service container logs
