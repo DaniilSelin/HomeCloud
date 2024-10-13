@@ -8,17 +8,34 @@ import logging
 logger = logging.getLogger('simple_logger')
 logger.setLevel(logging.ERROR)
 
+# Список возможных способов подключения
+connection_params = [
+    {"host": "rabbitmq", "description": "hostname 'rabbitmq'"},
+    {"host": "localhost", "description": "localhost"},
+    {"host": "172.17.0.2", "description": "IP address '172.17.0.2'"},  # IP-адрес можно настроить динамически
+]
 
-# Функция для установки соединения с RabbitMQ
-def establish_connection():
+
+def establish_connection(attempt=0):
+    if attempt >= len(connection_params):
+        logger.error("All connection attempts failed. No more methods to try. Retry")
+        return establish_connection()
+
+    # Выбираем текущий способ подключения
+    current_method = connection_params[attempt]
+    host = current_method['host']
+    description = current_method['description']
+
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+        logger.info(f"Trying to connect to RabbitMQ using {description}...")
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=host))
         channel = connection.channel()
+        logger.info(f"Successfully connected to RabbitMQ using {description}")
         return connection, channel
     except pika.exceptions.AMQPConnectionError as e:
-        logger.error(f'Failed to connect to RabbitMQ: {e}')
+        logger.error(f"Failed to connect to RabbitMQ using {description}: {e}")
         time.sleep(5)  # Ждем 5 секунд перед повторной попыткой
-        return establish_connection()
+        return establish_connection(attempt + 1)
 
 
 connection, channel = establish_connection()
