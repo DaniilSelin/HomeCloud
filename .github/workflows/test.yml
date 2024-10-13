@@ -46,11 +46,6 @@ jobs:
         env:
           ADMIN_SECRET_KEY: "changeme"
           JWT_SECRET_KEY: "15517b618c60112042ea471f7609c160b4e59fda71d2099b"
-      networks:
-        - test_network
-
-    networks:
-      test_network:
 
     steps:
     - name: Set permissions before Checkout
