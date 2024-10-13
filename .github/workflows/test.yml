@@ -63,7 +63,6 @@ jobs:
 
     - name: Log service
       run: |
-        sleep 15
         docker ps -a
 
     - name: Get auth_service container logs
@@ -73,12 +72,15 @@ jobs:
     - name: Check auth_service availability
       run: |
         echo "Checking auth_service availability..."
-        sleep 10 
-        curl -v http://auth_service:5000/auth/login || echo "auth_service is not reachable"
+        curl -v http://localhost:5000/auth/login || echo "auth_service is not reachable"
+
+    - name: Check running containers
+      run: |
+        sleep 10
+        docker ps
 
     - name: Run tests
       run: |
-        sleep 10
         python -m venv venv
         . venv/bin/activate
         pip install pytest
