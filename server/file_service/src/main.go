@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"fmt"
 	"net/http"
@@ -14,12 +13,14 @@ func init() {
     if err != nil {
         log.Fatalf("Failed to initialize loggers: %v", err)
     }
+
+    // G_RPC муть потом разберемся с ней
 	// создаем папки для пользователей
-	err = RunClient()
-	if err != nil {
-		fmt.Println("НЕ ПОЛУЧИЛАСЬ")
-		log.Fatalf("Error thet creating workdir: %v", err)
-	}
+	//err = RunClient()
+	//if err != nil {
+	//	fmt.Println("НЕ ПОЛУЧИЛАСЬ")
+	//	log.Fatalf("Error thet creating workdir: %v", err)
+	//}
 }
 
 func main() {
